@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ScoreBug · Display</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ── OBS display: transparent bg, scorebug only ── */
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html, body {
+  background: transparent;
+  width: 100%; height: 100%;
+  overflow: hidden;
+  font-family: 'Bebas Neue', sans-serif;
+}
+
+/* Wrapper — centers scorebug top of screen */
+#wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0;
+  width: 100%;
+}
+
+/* ── SCOREBUG ── */
+#scorebug {
+  position: relative;
+  width: 660px;
+  border-radius: 0 0 14px 14px;
+  overflow: hidden;
+  box-shadow: 0 8px 60px rgba(0,0,0,0.8);
+  /* Slide in from top on load */
+  transform: translateY(-100%);
+  animation: slideDown .6s .3s cubic-bezier(0.4,0,0.2,1) forwards;
+}
+@keyframes slideDown { to { transform: translateY(0); } }
+
+.bug-body {
+  display: grid;
+  grid-template-columns: 1fr 136px 1fr;
+  position: relative; z-index: 1;
+}
+
+.tb {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 22px;
+  position: relative; overflow: hidden; min-height: 90px;
+}
+.tb.right { flex-direction: row-reverse; }
+.tb::after {
+  content: ''; position: absolute; inset: 0;
+  background: rgba(0,0,0,0.28); pointer-events: none;
+}
+
+.t-logo {
+  width: 50px; height: 50px; object-fit: contain;
+  border-radius: 8px; flex-shrink: 0;
+  position: relative; z-index: 1;
+  background: rgba(255,255,255,0.08);
+}
+.t-info { position: relative; z-index: 1; }
+.tb.right .t-info { text-align: right; }
+.t-abbr {
+  font-size: 36px; letter-spacing: 2px; color: #fff; line-height: 1;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+.t-full {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px; font-weight: 800; letter-spacing: 2px;
+  color: rgba(255,255,255,0.7); text-transform: uppercase;
+}
+
+/* Score center */
+.sb {
+  background: #07070e;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 10px 5px; position: relative; z-index: 2;
+}
+.srow { display: flex; align-items: center; gap: 6px; }
+.snum {
+  font-size: 56px; color: #fff; line-height: 1;
+  transition: transform .05s;
+}
+.ssep { font-size: 28px; color: #333; }
+.stimer {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800; font-size: 13px; letter-spacing: 2px;
+  color: #4a4a6a; margin-top: 3px;
+}
+.scup { width: 20px; height: 20px; object-fit: contain; margin-top: 4px; display: none; }
+.scup.v { display: block; }
+
+/* ── GOAL OVERLAY ── */
+#goal-overlay {
+  position: absolute; inset: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; overflow: hidden;
+  border-radius: 0 0 14px 14px;
+}
+.gbg { position: absolute; inset: 0; display: flex; }
+.gbgl { flex: 1; transform-origin: left center; }
+.gbgr { flex: 1; transform-origin: right center; }
+
+@keyframes wiL  { from{transform:scaleX(0)} to{transform:scaleX(1)} }
+@keyframes woL  { from{transform:scaleX(1)} to{transform:scaleX(0)} }
+@keyframes wiR  { from{transform:scaleX(0)} to{transform:scaleX(1)} }
+@keyframes woR  { from{transform:scaleX(1)} to{transform:scaleX(0)} }
+
+.gstripe {
+  position: absolute; inset: -100%; z-index: 0;
+  background: repeating-linear-gradient(60deg,
+    transparent 0px, transparent 60px,
+    rgba(255,255,255,0.06) 60px, rgba(255,255,255,0.06) 120px);
+  animation: ss .35s linear infinite;
+}
+@keyframes ss { from{transform:translateX(0)} to{transform:translateX(120px)} }
+
+.gword {
+  position: relative; z-index: 5;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 120px; letter-spacing: 16px; color: #fff;
+  text-shadow: 0 0 40px rgba(255,255,255,0.25);
+  transform: scaleX(0.1) scaleY(2.5); opacity: 0;
+}
+
+/* Score flash */
+@keyframes numF {
+  0%{transform:scale(1)}
+  25%{transform:scale(1.65);filter:drop-shadow(0 0 12px #fff)}
+  60%{transform:scale(0.88)}
+  100%{transform:scale(1)}
+}
+.nflash { animation: numF .55s ease; }
+
+/* ── PLAYER BANNER ── */
+#player-banner {
+  width: 660px;
+  overflow: hidden; height: 0;
+  transition: height .45s cubic-bezier(0.4,0,0.2,1);
+}
+#player-banner.open { height: 64px; }
+.pb-inner {
+  display: flex; align-items: stretch; height: 64px;
+  border-radius: 0 0 12px 12px; overflow: hidden;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.7);
+}
+.pb-bar  { width: 6px; flex-shrink: 0; }
+.pb-num  {
+  width: 58px; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 28px; font-weight: 400;
+  color: rgba(255,255,255,0.9); background: rgba(0,0,0,0.4);
+}
+.pb-info {
+  flex: 1; padding: 0 16px;
+  display: flex; align-items: center; gap: 14px;
+  background: rgba(0,0,0,0.6);
+}
+.pb-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px; letter-spacing: 3px; color: #fff; line-height: 1;
+  white-space: nowrap;
+}
+.pb-div { width: 1px; height: 30px; background: rgba(255,255,255,0.15); flex-shrink: 0; }
+.pb-detail {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px; font-weight: 400; letter-spacing: 2px;
+  text-transform: uppercase; color: rgba(255,255,255,0.5); white-space: nowrap;
+}
+.pb-bar2 { width: 6px; flex-shrink: 0; }
+
+/* ── SUBSTITUTION BANNER ── */
+#sub-banner{width:660px;overflow:hidden;height:0;transition:height .5s cubic-bezier(0.4,0,0.2,1);}
+#sub-banner.open{height:80px;}
+.sub-inner{display:flex;align-items:stretch;height:80px;border-radius:0 0 12px 12px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,0.7);}
+.sub-bar{width:6px;flex-shrink:0;}
+.sub-icon-col{width:52px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);flex-shrink:0;font-size:22px;color:rgba(255,255,255,0.7);}
+/* sub-players: absolute positioned slots for smooth swap */
+.sub-players{flex:1;position:relative;background:rgba(0,0,0,0.65);overflow:hidden;}
+/* Two fixed-height slots */
+.sub-slot{
+  position:absolute;left:0;right:0;height:50%;
+  display:flex;align-items:center;gap:12px;padding:0 16px;
+  overflow:hidden;
+}
+.sub-slot-top{top:0;border-bottom:1px solid rgba(255,255,255,0.08);}
+.sub-slot-bot{bottom:0;}
+/* Player card — slides inside its slot */
+.sub-card{
+  display:flex;align-items:center;gap:12px;width:100%;
+  transition:transform .55s cubic-bezier(0.4,0,0.2,1), opacity .4s ease;
+}
+.sub-card.hide-up  {transform:translateY(-120%);opacity:0;}
+.sub-card.hide-down{transform:translateY(120%);opacity:0;}
+.sub-card.show     {transform:translateY(0);opacity:1;}
+.sub-arrow{font-size:18px;font-weight:900;flex-shrink:0;line-height:1;}
+.sub-arrow.out{color:#ff5252;}
+.sub-arrow.in{color:#00e676;}
+.sub-num{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:400;color:rgba(255,255,255,0.4);min-width:22px;text-align:right;}
+.sub-name{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:#fff;white-space:nowrap;}
+.sub-bar2{width:6px;flex-shrink:0;}
+
+/* ── CONNECTING INDICATOR ── */
+#conn {
+  position: fixed; bottom: 12px; right: 14px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  color: rgba(255,255,255,0.25);
+  display: flex; align-items: center; gap: 6px;
+}
+.conn-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #4a4a6a;
+  animation: pulse 2s ease-in-out infinite;
+}
+.conn-dot.live { background: #00e676; animation: pulse-live 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:.4} 50%{opacity:1} }
+@keyframes pulse-live { 0%,100%{opacity:.6;transform:scale(1)} 50%{opacity:1;transform:scale(1.3)} }
+
+/* NO GIST message */
+#no-gist {
+  display: none;
+  position: fixed; inset: 0;
+  align-items: center; justify-content: center;
+  flex-direction: column; gap: 14px;
+  background: rgba(8,8,16,0.95);
+}
+#no-gist.show { display: flex; }
+#no-gist p {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px; letter-spacing: 2px; color: #4a4a6a;
+  text-transform: uppercase; text-align: center;
+}
+#no-gist code {
+  font-size: 12px; color: #00e676; background: rgba(0,230,118,0.08);
+  padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(0,230,118,0.2);
+}
+</style>
+</head>
+<body>
+
+<div id="wrap">
+  <div id="scorebug">
+    <div class="bug-body">
+      <!-- Home -->
+      <div class="tb left" id="tb-h">
+        <img class="t-logo" id="logo-h" src="" alt="" style="display:none" crossorigin="anonymous">
+        <div class="t-info">
+          <div class="t-abbr" id="abbr-h">–</div>
+          <div class="t-full" id="name-h"></div>
+        </div>
+      </div>
+      <!-- Score -->
+      <div class="sb" id="score-center">
+        <div class="srow">
+          <span class="snum" id="sn-h">0</span>
+          <span class="ssep">–</span>
+          <span class="snum" id="sn-a">0</span>
+        </div>
+        <div class="stimer" id="s-clock">00:00</div>
+        <img class="scup" id="scup" src="" alt="" crossorigin="anonymous">
+      </div>
+      <!-- Away -->
+      <div class="tb right" id="tb-a">
+        <img class="t-logo" id="logo-a" src="" alt="" style="display:none" crossorigin="anonymous">
+        <div class="t-info">
+          <div class="t-abbr" id="abbr-a">–</div>
+          <div class="t-full" id="name-a"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Goal Overlay -->
+    <div id="goal-overlay">
+      <div class="gbg">
+        <div class="gbgl" id="gbgl"></div>
+        <div class="gbgr" id="gbgr"></div>
+      </div>
+      <div class="gstripe"></div>
+      <div class="gword" id="gword">QOL</div>
+    </div>
+  </div>
+
+  <!-- Player Banner -->
+  <div id="player-banner">
+    <div class="pb-inner">
+      <div class="pb-bar"  id="pb-bar1"></div>
+      <div class="pb-num"  id="pb-num"></div>
+      <div class="pb-info">
+        <div class="pb-name"   id="pb-name"></div>
+        <div class="pb-div"></div>
+        <div class="pb-detail" id="pb-detail"></div>
+      </div>
+      <div class="pb-bar2" id="pb-bar2"></div>
+    </div>
+  </div>
+</div>
+
+  <!-- Substitution Banner -->
+  <div id="sub-banner">
+    <div class="sub-inner" id="sub-inner">
+      <div class="sub-bar" id="sub-bar1"></div>
+      <div class="sub-icon-col">⇄</div>
+      <div class="sub-players">
+        <!-- TOP SLOT: initially holds the OUT player -->
+        <div class="sub-slot sub-slot-top">
+          <div class="sub-card hide-up" id="card-out">
+            <span class="sub-arrow out">↓</span>
+            <span class="sub-num" id="sub-out-num-disp"></span>
+            <span class="sub-name" id="sub-out-name-disp"></span>
+          </div>
+        </div>
+        <!-- BOT SLOT: initially holds the IN player -->
+        <div class="sub-slot sub-slot-bot">
+          <div class="sub-card hide-down" id="card-in">
+            <span class="sub-arrow in">↑</span>
+            <span class="sub-num" id="sub-in-num-disp"></span>
+            <span class="sub-name" id="sub-in-name-disp"></span>
+          </div>
+        </div>
+      </div>
+      <div class="sub-bar2" id="sub-bar2"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Connection indicator -->
+<div id="conn">
+  <div class="conn-dot" id="conn-dot"></div>
+  <span id="conn-txt">BAĞLANIYOR</span>
+</div>
+
+<!-- No gist warning -->
+<div id="no-gist">
+  <p>Gist ID bulunamadı</p>
+  <p>URL'ye <code>?gist=GIST_ID</code> ekleyin</p>
+  <p style="color:#4a4a6a;font-size:12px">Panel sayfasında PUBLISH'e basın, linki OBS'e yapıştırın</p>
+</div>
+
+<script>
+// ── GET GIST ID FROM URL ──
+const params = new URLSearchParams(location.search);
+const GIST_ID = params.get('gist');
+
+if (!GIST_ID) {
+  document.getElementById('no-gist').classList.add('show');
+}
+
+// ── STATE TRACKING ──
+let lastPublished = '';
+let lastScoreH = 0, lastScoreA = 0;
+let lastSubTs = '';
+let lastGoalSide = null;
+let firstLoad = true;
+
+// ── POLL GIST ──
+async function poll() {
+  if (!GIST_ID) return;
+  try {
+    // Cache-busting timestamp
+    const res = await fetch(
+      `https://api.github.com/gists/${GIST_ID}`,
+      { headers: { 'Accept': 'application/vnd.github.v3+json' }, cache: 'no-store' }
+    );
+    if (!res.ok) throw new Error('fetch fail');
+    const data = await res.json();
+    const raw = data.files['scorebug_state.json'];
+    if (!raw) throw new Error('no file');
+
+    // Fetch raw content (also cache-bust)
+    const contentRes = await fetch(raw.raw_url + '?t=' + Date.now(), { cache: 'no-store' });
+    if (!contentRes.ok) throw new Error('raw fail');
+    const state = await contentRes.json();
+
+    if (state.published !== lastPublished) {
+      applyState(state);
+      lastPublished = state.published;
+    }
+
+    setConn(true);
+  } catch(e) {
+    setConn(false);
+  }
+}
+
+function applyState(s) {
+  // Teams
+  setText('abbr-h', s.home.abbr);
+  setText('name-h', s.home.name);
+  setText('abbr-a', s.away.abbr);
+  setText('name-a', s.away.name);
+
+  // Colors
+  el('tb-h').style.background = `linear-gradient(135deg,${s.home.c1},${s.home.c2})`;
+  el('tb-a').style.background = `linear-gradient(135deg,${s.away.c1},${s.away.c2})`;
+
+  // Logos
+  setLogo('logo-h', s.home.logo);
+  setLogo('logo-a', s.away.logo);
+
+  // Cup
+  const ci = el('scup');
+  if (s.cup && s.cup.logo) { ci.src = proxyUrl(s.cup.logo); ci.classList.add('v'); ci.onerror = () => ci.classList.remove('v'); }
+  else { ci.classList.remove('v'); }
+
+  // Scoreboard colors
+  if (s.sb) {
+    el('score-center').style.background = s.sb.bg || '#07070e';
+    document.querySelectorAll('.snum').forEach(e => e.style.color = s.sb.scoreColor || '#fff');
+    el('s-clock').style.color = s.sb.clockColor || '#4a4a6a';
+  }
+
+  // Clock
+  setText('s-clock', s.clock);
+
+  // Scores — detect goal
+  const newH = s.home.score, newA = s.away.score;
+  if (!firstLoad) {
+    if (newH > lastScoreH) { flashScore('sn-h'); animateGoal(s.home.c1, s.home.c2, 'home'); }
+    else if (newA > lastScoreA) { flashScore('sn-a'); animateGoal(s.away.c1, s.away.c2, 'away'); }
+  }
+  setText('sn-h', newH);
+  setText('sn-a', newA);
+  lastScoreH = newH; lastScoreA = newA;
+
+  // Player banner
+  if (s.playerShow && s.playerShow.active) {
+    showPlayerBanner(s.playerShow.num, s.playerShow.name, s.playerShow.info,
+      s[s.playerShow.side+''].c1 || s.home.c1,
+      s[s.playerShow.side+''].c2 || s.home.c2);
+  }
+
+  // Substitution banner
+  if (s.subShow && s.subShow.ts && s.subShow.ts !== lastSubTs) {
+    lastSubTs = s.subShow.ts;
+    const ss = s.subShow;
+    const sc = s[ss.side] || s.home;
+    showSubBanner(ss.outNum, ss.outName, ss.inNum, ss.inName, sc.c1, sc.c2);
+  }
+
+  firstLoad = false;
+}
+
+function flashScore(id) {
+  const e = el(id);
+  e.classList.remove('nflash'); void e.offsetWidth; e.classList.add('nflash');
+}
+
+function proxyUrl(url) {
+  if (!url) return '';
+  if (url.startsWith('data:') || url.includes('weserv.nl')) return url;
+  return 'https://images.weserv.nl/?url=' + encodeURIComponent(url) + '&w=120&h=120&fit=contain&bg=transparent';
+}
+function setLogo(id, url) {
+  const img = el(id);
+  if (url) {
+    const px = proxyUrl(url);
+    img.src = px; img.style.display = 'block';
+    img.onerror = () => img.style.display = 'none';
+  } else { img.style.display = 'none'; }
+}
+
+// ── GOAL ANIMATION ──
+function animateGoal(c1, c2, side) {
+  const ov = el('goal-overlay');
+  const L = el('gbgl'), R = el('gbgr');
+  const word = el('gword');
+
+  word.style.opacity = '0';
+  word.style.transform = 'scaleX(0.1) scaleY(2.5)';
+  word.style.transition = 'none';
+  L.style.background = c1; R.style.background = c2;
+  L.style.animation = 'none'; R.style.animation = 'none';
+  void L.offsetWidth;
+
+  if (side === 'home') {
+    L.style.transformOrigin = 'left center';  R.style.transformOrigin = 'left center';
+    L.style.animation = 'wiL .35s ease forwards'; R.style.animation = 'wiL .35s .06s ease forwards';
+  } else {
+    L.style.transformOrigin = 'right center'; R.style.transformOrigin = 'right center';
+    L.style.animation = 'wiR .35s .06s ease forwards'; R.style.animation = 'wiR .35s ease forwards';
+  }
+
+  ov.style.transition = 'none'; ov.style.opacity = '1'; ov.style.pointerEvents = 'auto';
+
+  setTimeout(() => {
+    word.style.transition = 'transform .3s cubic-bezier(0.175,0.885,0.32,1.6),opacity .15s';
+    word.style.opacity = '1'; word.style.transform = 'scaleX(1) scaleY(1)';
+  }, 120);
+
+  setTimeout(() => {
+    L.style.animation = 'none'; R.style.animation = 'none'; void L.offsetWidth;
+    if (side === 'home') { L.style.animation = 'woL .35s ease forwards'; R.style.animation = 'woL .35s .06s ease forwards'; }
+    else { L.style.animation = 'woR .35s .06s ease forwards'; R.style.animation = 'woR .35s ease forwards'; }
+    word.style.transition = 'opacity .3s'; word.style.opacity = '0';
+  }, 2600);
+
+  setTimeout(() => { ov.style.pointerEvents = 'none'; ov.style.opacity = '0'; }, 3050);
+}
+
+// ── PLAYER BANNER ──
+function showPlayerBanner(num, name, info, c1, c2) {
+  const banner = el('player-banner');
+  setText('pb-num', num || '');
+  setText('pb-name', name || '');
+  setText('pb-detail', info || '');
+  el('pb-bar1').style.background = c1;
+  el('pb-bar2').style.background = c2;
+  banner.classList.remove('open'); void banner.offsetWidth;
+  setTimeout(() => {
+    banner.classList.add('open');
+    clearTimeout(banner._t);
+    banner._t = setTimeout(() => banner.classList.remove('open'), 5000);
+  }, 20);
+}
+
+// ── SUBSTITUTION BANNER ──
+function showSubBanner(outNum, outName, inNum, inName, c1, c2) {
+  el('player-banner').classList.remove('open');
+  el('sub-bar1').style.background = c1;
+  el('sub-bar2').style.background = c2;
+
+  const banner  = el('sub-banner');
+  const cardOut = el('card-out');
+  const cardIn  = el('card-in');
+  clearTimeout(banner._t1); clearTimeout(banner._t2); clearTimeout(banner._t3);
+
+  // Set content
+  setText('sub-out-num-disp', outNum  || '');
+  setText('sub-out-name-disp', outName || '');
+  setText('sub-in-num-disp',   inNum   || '');
+  setText('sub-in-name-disp',  inName  || '');
+
+  // Reset cards to hidden positions instantly (no transition)
+  cardOut.style.transition = 'none';
+  cardIn.style.transition  = 'none';
+  cardOut.className = 'sub-card hide-up';
+  cardIn.className  = 'sub-card hide-down';
+
+  // Open banner
+  banner.classList.add('open');
+
+  // Phase 1 (frame after): slide both IN
+  // OUT→ top slot (yuxarıdan aşağı gəlir), IN→ bot slot (aşağıdan yuxarı gəlir)
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    cardOut.style.transition = '';
+    cardIn.style.transition  = '';
+    cardOut.className = 'sub-card show';
+    cardIn.className  = 'sub-card show';
+
+    // After 3s: SWAP — out goes down, in goes up
+    banner._t1 = setTimeout(() => {
+      // Move OUT card down (out of top slot), IN card up (out of bot slot)
+      cardOut.className = 'sub-card hide-down';
+      cardIn.className  = 'sub-card hide-up';
+
+      // After transition (0.55s): reposition silently and slide back
+      banner._t2 = setTimeout(() => {
+        // Out now in BOT slot visually hidden at top, In now in TOP slot hidden at bottom
+        // We do this by swapping the arrow classes and re-entering from opposite sides
+        // Simpler: just swap DOM positions
+        const topSlot = document.querySelector('.sub-slot-top');
+        const botSlot = document.querySelector('.sub-slot-bot');
+        topSlot.appendChild(cardIn);
+        botSlot.appendChild(cardOut);
+
+        cardOut.style.transition = 'none';
+        cardIn.style.transition  = 'none';
+        cardOut.className = 'sub-card hide-down';
+        cardIn.className  = 'sub-card hide-up';
+
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          cardOut.style.transition = '';
+          cardIn.style.transition  = '';
+          // Now: IN is in top slot, OUT is in bot slot — slide both in
+          cardIn.className  = 'sub-card show';
+          cardOut.className = 'sub-card show';
+
+          // Hold 3s then close
+          banner._t3 = setTimeout(() => {
+            cardOut.className = 'sub-card hide-down';
+            cardIn.className  = 'sub-card hide-up';
+            setTimeout(() => {
+              banner.classList.remove('open');
+              // Reset DOM order
+              topSlot.appendChild(cardOut);
+              botSlot.appendChild(cardIn);
+            }, 560);
+          }, 3000);
+        }));
+      }, 560);
+    }, 3000);
+  }));
+}
+
+// ── CONN STATUS ──
+function setConn(ok) {
+  el('conn-dot').className = 'conn-dot' + (ok ? ' live' : '');
+  el('conn-txt').textContent = ok ? 'CANLI' : 'BAĞLANTI YOK';
+}
+
+// ── HELPERS ──
+function el(id)    { return document.getElementById(id); }
+function setText(id, t) { document.getElementById(id).textContent = t; }
+
+// ── START POLLING ──
+if (GIST_ID) {
+  poll();
+  setInterval(poll, 2000);
+}
+</script>
+</body>
+</html>
