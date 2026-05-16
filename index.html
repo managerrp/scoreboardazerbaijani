@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ScoreBug · Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080810;--card:#13131f;--border:#1c1c2e;
+  --text:#e8e8f8;--muted:#4a4a6a;
+  --green:#00e676;--red:#ff1744;--gold:#ffd740;--blue:#448aff;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Barlow Condensed',sans-serif;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(ellipse 80% 50% at 20% 20%,rgba(0,230,118,0.04) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 80% 80%,rgba(100,100,255,0.04) 0%,transparent 60%);pointer-events:none;z-index:0;}
+.page{position:relative;z-index:1;max-width:1000px;margin:0 auto;padding:28px 18px 80px;}
+
+/* HEADER */
+.header{text-align:center;margin-bottom:28px;}
+.header h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(40px,8vw,76px);letter-spacing:8px;background:linear-gradient(160deg,#fff 0%,#888 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:0.9;}
+.header-sub{font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--muted);margin-top:6px;}
+
+/* SECTION TITLE */
+.sec{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin:20px 0 8px;display:block;}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:14px;}
+
+/* TOKEN BAR */
+.token-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0;}
+.dot.ok{background:var(--green);box-shadow:0 0 8px var(--green);}
+.dot.err{background:var(--red);}
+.tlabel{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);white-space:nowrap;}
+input.tok{flex:1;min-width:180px;background:#0a0a14;border:1px solid var(--border);color:var(--text);font-family:monospace;font-size:13px;padding:8px 12px;border-radius:8px;outline:none;}
+input.tok:focus{border-color:var(--green);}
+
+/* PUBLISH STATUS */
+.pub-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;}
+.pub-status{font-size:12px;letter-spacing:1px;color:var(--muted);flex:1;min-width:180px;}
+.pub-status.live{color:var(--green);}
+.pub-link{font-family:monospace;font-size:11px;color:var(--muted);word-break:break-all;margin-top:6px;}
+.pub-link a{color:var(--green);text-decoration:none;}
+
+/* BUTTONS */
+.btn{padding:9px 18px;border-radius:8px;border:none;cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;transition:all .2s;white-space:nowrap;}
+.btn-green{background:var(--green);color:#000;}
+.btn-green:hover{background:#00ff87;box-shadow:0 0 14px rgba(0,230,118,0.4);}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-ghost:hover{border-color:var(--green);color:var(--green);}
+.btn-publish{background:linear-gradient(135deg,var(--gold),#ff9800);color:#000;font-size:16px;padding:11px 24px;}
+.btn-publish:hover{filter:brightness(1.1);transform:translateY(-1px);}
+.btn-publish:disabled{opacity:0.45;cursor:not-allowed;transform:none;}
+.btn-danger{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-danger:hover{border-color:var(--red);color:var(--red);}
+
+/* TEAMS GRID */
+.teams-grid{display:grid;grid-template-columns:1fr 44px 1fr;gap:12px;align-items:start;}
+.vs-col{display:flex;align-items:center;justify-content:center;padding-top:52px;}
+.vs-txt{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--muted);letter-spacing:3px;}
+.panel-lbl{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:block;}
+
+/* FORM FIELDS */
+.fg{margin-bottom:11px;}
+.fg>label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px;}
+input.fi{width:100%;background:#0a0a14;border:1px solid var(--border);color:var(--text);padding:8px 11px;border-radius:8px;outline:none;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;transition:border .2s;}
+input.fa{width:100%;background:#0a0a14;border:1px solid var(--border);color:var(--text);padding:8px 11px;border-radius:8px;outline:none;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;transition:border .2s;}
+input.fi:focus,input.fa:focus{border-color:var(--green);}
+.cpair{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.csw{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.csw label{font-size:9px;letter-spacing:2px;color:var(--muted);}
+input[type=color]{width:46px;height:34px;border-radius:8px;border:2px solid var(--border);cursor:pointer;background:none;padding:2px;}
+.lprev{width:40px;height:40px;border-radius:8px;object-fit:contain;background:rgba(255,255,255,0.05);border:1px solid var(--border);margin-top:4px;display:none;}
+.lprev.v{display:block;}
+
+/* META */
+.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.cup-row{display:grid;grid-template-columns:1fr 44px;gap:8px;align-items:end;}
+.cprev{width:40px;height:40px;object-fit:contain;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid var(--border);display:none;}
+.cprev.v{display:block;}
+
+/* ── CLOCK CONTROL ── */
+.clock-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:14px;}
+.clock-display{
+  font-family:'Bebas Neue',sans-serif;font-size:64px;letter-spacing:6px;
+  color:#fff;text-align:center;line-height:1;margin-bottom:16px;
+  text-shadow:0 0 30px rgba(255,255,255,0.08);
+}
+.clock-running .clock-display{color:var(--green);text-shadow:0 0 20px rgba(0,230,118,0.3);}
+.clock-controls{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:8px;}
+.btn-clock{
+  padding:11px 6px;border:none;border-radius:10px;cursor:pointer;
+  font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;
+  transition:all .2s;text-align:center;
+}
+.btn-start{background:var(--green);color:#000;}
+.btn-start:hover{background:#00ff87;box-shadow:0 0 14px rgba(0,230,118,0.3);}
+.btn-stop{background:var(--red);color:#fff;}
+.btn-stop:hover{background:#ff4444;}
+.btn-adj{background:#1a1a2e;border:1px solid var(--border);color:var(--text);font-size:20px;}
+.btn-adj:hover{border-color:var(--blue);color:var(--blue);}
+.btn-reset-clock{background:transparent;border:1px solid var(--border);color:var(--muted);font-size:13px;}
+.btn-reset-clock:hover{border-color:var(--red);color:var(--red);}
+.clock-hint{text-align:center;font-size:11px;letter-spacing:2px;color:var(--muted);margin-top:10px;}
+
+/* PLAYER SHOW */
+.player-grid{display:grid;grid-template-columns:70px 1fr 1fr auto;gap:10px;align-items:end;}
+
+/* GOAL / ACTION */
+.action-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:0;}
+.btn-act{padding:13px 8px;border:none;border-radius:10px;cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:2px;transition:all .2s;color:#fff;}
+.btn-act:hover:not(.btn-danger){transform:translateY(-2px);filter:brightness(1.15);}
+
+/* SCOREBUG PREVIEW */
+.preview-lbl{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+#sb-outer{display:flex;flex-direction:column;align-items:center;margin-bottom:24px;}
+#scorebug{position:relative;width:100%;max-width:660px;font-family:'Bebas Neue',sans-serif;border-radius:14px;overflow:hidden;box-shadow:0 8px 60px rgba(0,0,0,0.7);}
+.bug-body{display:grid;grid-template-columns:1fr 136px 1fr;position:relative;z-index:1;}
+.tb{display:flex;align-items:center;gap:12px;padding:16px 20px;position:relative;overflow:hidden;min-height:86px;}
+.tb.right{flex-direction:row-reverse;}
+.tb::after{content:'';position:absolute;inset:0;background:rgba(0,0,0,0.28);pointer-events:none;}
+.t-logo{width:48px;height:48px;object-fit:contain;border-radius:8px;flex-shrink:0;position:relative;z-index:1;background:rgba(255,255,255,0.08);}
+.t-info{position:relative;z-index:1;}
+.tb.right .t-info{text-align:right;}
+.t-abbr{font-size:34px;letter-spacing:2px;color:#fff;line-height:1;text-shadow:0 2px 8px rgba(0,0,0,0.5);}
+.t-full{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;letter-spacing:2px;color:rgba(255,255,255,0.7);text-transform:uppercase;}
+.sb-c{background:#07070e;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 5px;position:relative;z-index:2;}
+.srow{display:flex;align-items:center;gap:5px;}
+.snum{font-size:54px;color:#fff;line-height:1;}
+.ssep{font-size:26px;color:#333;}
+.stimer{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;letter-spacing:2px;color:var(--muted);margin-top:2px;}
+.scup{width:20px;height:20px;object-fit:contain;margin-top:3px;display:none;}
+.scup.v{display:block;}
+
+/* GOAL OVERLAY */
+#goal-overlay{position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;overflow:hidden;border-radius:14px;}
+.gbg{position:absolute;inset:0;display:flex;}
+.gbgl{flex:1;transform-origin:left center;}
+.gbgr{flex:1;transform-origin:right center;}
+@keyframes wiL{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes woL{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+@keyframes wiR{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes woR{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+/* ── GOAL WORD 3D ── */
+.gword-wrap{
+  position:relative;z-index:5;
+  perspective:600px;
+  display:flex;align-items:center;justify-content:center;
+}
+.gword{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(56px,12vw,108px);
+  letter-spacing:8px;
+  color:#fff;
+  white-space:nowrap;
+  display:flex;align-items:center;
+  transform-style:preserve-3d;
+}
+.gl{
+  display:inline-block;
+  opacity:0;
+  transform:rotateX(90deg) translateZ(20px);
+  transition:none;
+  text-shadow:
+    0 4px 0 rgba(0,0,0,0.5),
+    0 0 20px #fff,
+    0 0 40px rgba(255,255,255,0.5);
+  filter:drop-shadow(0 6px 8px rgba(0,0,0,0.6));
+}
+@keyframes glFall{
+  0%  {opacity:0;transform:rotateX(90deg) translateZ(20px);}
+  60% {opacity:1;transform:rotateX(-8deg) translateZ(4px);}
+  80% {transform:rotateX(4deg) translateZ(2px);}
+  100%{opacity:1;transform:rotateX(0deg) translateZ(0);}
+}
+@keyframes glFlash{
+  0%,100%{
+    text-shadow:0 4px 0 rgba(0,0,0,0.5),0 0 30px #fff,0 0 60px #fff,0 0 100px rgba(255,255,255,0.6);
+    color:#fff;
+  }
+  50%{
+    text-shadow:0 4px 0 rgba(0,0,0,0.3),0 0 6px rgba(255,255,255,0.3);
+    color:rgba(255,255,255,0.3);
+  }
+}
+.gstripe{position:absolute;inset:-100%;z-index:0;background:repeating-linear-gradient(60deg,transparent 0px,transparent 60px,rgba(255,255,255,0.06) 60px,rgba(255,255,255,0.06) 120px);animation:ss .35s linear infinite;}
+@keyframes ss{from{transform:translateX(0)}to{transform:translateX(120px)}}
+
+
+
+
+
+  100%{clip-path:inset(0 0% 0 0);opacity:1}
+}
+
+  100%{clip-path:inset(0 0 0 0%);opacity:1}
+}
+
+  50%{opacity:0.25;text-shadow:none}
+}
+@keyframes numF{0%{transform:scale(1)}25%{transform:scale(1.7);filter:drop-shadow(0 0 12px #fff)}60%{transform:scale(0.85)}100%{transform:scale(1)}}
+.nflash{animation:numF .55s ease;}
+
+/* PLAYER BANNER */
+#player-banner{width:100%;max-width:660px;margin:0 auto;overflow:hidden;height:0;transition:height .45s cubic-bezier(0.4,0,0.2,1);}
+#player-banner.open{height:62px;}
+.pb-inner{display:flex;align-items:stretch;height:62px;border-radius:0 0 12px 12px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,0.6);}
+.pb-bar{width:5px;flex-shrink:0;}
+.pb-num{width:54px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:400;color:rgba(255,255,255,0.9);background:rgba(0,0,0,0.4);}
+.pb-info{flex:1;padding:0 14px;display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.55);}
+.pb-name{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;color:#fff;line-height:1;white-space:nowrap;}
+.pb-div{width:1px;height:28px;background:rgba(255,255,255,0.15);flex-shrink:0;}
+.pb-detail{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:400;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.5);white-space:nowrap;}
+.pb-bar2{width:5px;flex-shrink:0;}
+
+/* SUBSTITUTION BANNER */
+#sub-banner{width:100%;max-width:660px;margin:0 auto;overflow:hidden;height:0;transition:height .45s cubic-bezier(0.4,0,0.2,1);}
+#sub-banner.open{height:80px;}
+.sub-inner{display:flex;align-items:stretch;height:80px;border-radius:0 0 12px 12px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,0.7);}
+.sub-bar{width:5px;flex-shrink:0;}
+.sub-icon-col{width:48px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);flex-shrink:0;font-size:20px;}
+.sub-players{flex:1;position:relative;background:rgba(0,0,0,0.6);overflow:hidden;}
+.sub-slot{position:absolute;left:0;right:0;height:50%;display:flex;align-items:center;padding:0 14px;overflow:hidden;}
+.sub-slot-top{top:0;border-bottom:1px solid rgba(255,255,255,0.08);}
+.sub-slot-bot{bottom:0;}
+.sub-card{display:flex;align-items:center;gap:12px;width:100%;transition:transform .55s cubic-bezier(0.4,0,0.2,1),opacity .4s ease;}
+.sub-card.hide-up  {transform:translateY(-120%);opacity:0;}
+.sub-card.hide-down{transform:translateY(120%);opacity:0;}
+.sub-card.show     {transform:translateY(0);opacity:1;}
+.sub-arrow{font-size:18px;font-weight:900;flex-shrink:0;line-height:1;}
+.sub-arrow.out{color:#ff5252;}
+.sub-arrow.in{color:#00e676;}
+.sub-num{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:400;color:rgba(255,255,255,0.4);min-width:22px;text-align:right;}
+.sub-name{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:#fff;white-space:nowrap;}
+.sub-bar2{width:5px;flex-shrink:0;}
+
+/* LANG BUTTONS */
+.lang-btn{
+  padding:9px 18px;border-radius:8px;border:1px solid var(--border);
+  background:transparent;color:var(--muted);
+  font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;
+  cursor:pointer;transition:all .2s;
+}
+.lang-btn:hover{border-color:var(--green);color:var(--text);}
+.lang-btn.active{border-color:var(--green);color:#fff;background:rgba(0,230,118,0.12);}
+
+/* HISTORY */
+.hist-sec{margin-top:28px;}
+.hist-head{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.h-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;gap:10px;animation:sd .3s ease;}
+@keyframes sd{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.h-score{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;}
+.h-meta{font-size:12px;color:var(--muted);margin-top:1px;font-weight:700;letter-spacing:1px;}
+.h-time{font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--green);letter-spacing:1px;flex-shrink:0;}
+.glink a{font-size:11px;color:var(--green);text-decoration:none;font-weight:700;letter-spacing:1px;border:1px solid rgba(0,230,118,0.3);padding:3px 9px;border-radius:6px;transition:all .2s;display:inline-block;margin-top:5px;}
+.glink a:hover{background:rgba(0,230,118,0.1);}
+.gloading{font-size:11px;color:var(--muted);font-style:italic;margin-top:5px;display:block;}
+
+/* AUTO-PUBLISH INDICATOR */
+.auto-pub-row{display:flex;align-items:center;gap:8px;margin-top:10px;}
+.auto-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);}
+.auto-dot.syncing{background:var(--gold);animation:blink .5s ease infinite alternate;}
+.auto-dot.synced{background:var(--green);}
+@keyframes blink{from{opacity:0.4}to{opacity:1}}
+.auto-txt{font-size:11px;letter-spacing:1px;color:var(--muted);}
+
+/* TOAST */
+#toast{position:fixed;top:18px;right:18px;z-index:9999;background:var(--green);color:#000;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;padding:11px 22px;border-radius:10px;box-shadow:0 4px 20px rgba(0,230,118,0.4);opacity:0;transform:translateY(-10px);transition:all .3s;pointer-events:none;}
+#toast.show{opacity:1;transform:translateY(0);}
+#toast.gold{background:var(--gold);}
+#toast.err{background:var(--red);color:#fff;}
+
+@media(max-width:600px){
+  .teams-grid{grid-template-columns:1fr}.vs-col{display:none}
+  .meta-grid,.action-row,.player-grid,.clock-controls{grid-template-columns:1fr 1fr}
+  .t-abbr{font-size:24px}.snum{font-size:40px}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <h1>ScoreBug</h1>
+    <div class="header-sub">İdarəetmə Paneli · Live Scoreboard</div>
+  </div>
+
+  <!-- GitHub Token -->
+  <span class="sec">GitHub Ayarı</span>
+  <div class="card">
+    <div class="token-row">
+      <div class="dot" id="tok-dot"></div>
+      <span class="tlabel">GitHub Token</span>
+      <input type="password" class="tok" id="gh-token" placeholder="ghp_xxxxxxxxxxxxxxxx">
+      <button class="btn btn-green" onclick="saveToken()">SAXLA</button>
+    </div>
+    <div class="pub-row">
+      <button class="btn btn-publish" id="btn-publish" onclick="publish()" disabled>⬆ YAYIMLA</button>
+      <div style="flex:1;min-width:180px;">
+        <div class="pub-status" id="pub-status">Token daxil edilmədən yayımlanmaz</div>
+        <div class="pub-link" id="pub-link"></div>
+      </div>
+      <button class="btn btn-ghost" id="btn-copy-link" style="display:none" onclick="copyDisplayLink()">🔗 LİNKİ KOPİALA</button>
+    </div>
+    <div class="auto-pub-row">
+      <div class="auto-dot" id="auto-dot"></div>
+      <span class="auto-txt" id="auto-txt">Hər dəyişiklik avtomatik yayımlanır</span>
+    </div>
+  </div>
+
+  <!-- Teams -->
+  <span class="sec">Komandalar</span>
+  <div class="teams-grid" style="margin-bottom:14px;">
+    <!-- Home -->
+    <div class="card" style="margin-bottom:0">
+      <span class="panel-lbl">🏠 Ev Sahibi</span>
+      <div class="fg"><label>Qısaltma</label><input class="fa" id="h-abbr" value="" placeholder="QAL..." maxlength="5" oninput="onFieldChange()"></div>
+      <div class="fg"><label>Komanda Adı</label><input class="fi" id="h-name" value="" placeholder="Komanda adı..." oninput="onFieldChange()"></div>
+      <div class="fg">
+        <label>Loqo URL</label>
+        <input class="fi" id="h-logo" placeholder="https://..." oninput="previewLogo('h')">
+        <img class="lprev" id="h-logo-prev" alt="">
+      </div>
+      <div class="fg">
+        <label>Rənglər</label>
+        <div class="cpair">
+          <div class="csw"><label>Əsas</label><input type="color" id="h-c1" value="#e8000d" oninput="onFieldChange()"></div>
+          <div class="csw"><label>İkinci</label><input type="color" id="h-c2" value="#f5a623" oninput="onFieldChange()"></div>
+        </div>
+      </div>
+    </div>
+    <div class="vs-col"><div class="vs-txt">VS</div></div>
+    <!-- Away -->
+    <div class="card" style="margin-bottom:0">
+      <span class="panel-lbl">✈️ Səfər</span>
+      <div class="fg"><label>Qısaltma</label><input class="fa" id="a-abbr" value="" placeholder="NFK..." maxlength="5" oninput="onFieldChange()"></div>
+      <div class="fg"><label>Komanda Adı</label><input class="fi" id="a-name" value="" placeholder="Komanda adı..." oninput="onFieldChange()"></div>
+      <div class="fg">
+        <label>Loqo URL</label>
+        <input class="fi" id="a-logo" placeholder="https://..." oninput="previewLogo('a')">
+        <img class="lprev" id="a-logo-prev" alt="">
+      </div>
+      <div class="fg">
+        <label>Rənglər</label>
+        <div class="cpair">
+          <div class="csw"><label>Əsas</label><input type="color" id="a-c1" value="#003f8a" oninput="onFieldChange()"></div>
+          <div class="csw"><label>İkinci</label><input type="color" id="a-c2" value="#fbcf09" oninput="onFieldChange()"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Meta -->
+  <span class="sec">Turnir Məlumatı</span>
+  <div class="card">
+    <div class="meta-grid">
+      <div class="fg" style="margin-bottom:0">
+        <label>Kubok / Liqa Adı</label>
+        <input class="fi" id="cup-name" value="" placeholder="Liqa / Kubok adı..." oninput="onFieldChange()">
+      </div>
+      <div class="fg" style="margin-bottom:0">
+        <label>Kubok Loqo URL</label>
+        <div class="cup-row">
+          <input class="fi" id="cup-logo" placeholder="https://..." oninput="previewCup()">
+          <img class="cprev" id="cup-prev" alt="">
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+      <div class="fg" style="margin-bottom:0">
+        <label>Skorbord Fonu</label>
+        <div class="csw" style="align-items:flex-start;flex-direction:row;gap:10px;">
+          <input type="color" id="sb-bg" value="#07070e" oninput="onFieldChange()">
+          <span style="font-size:11px;color:var(--muted);align-self:center">Mərkəz</span>
+        </div>
+      </div>
+      <div class="fg" style="margin-bottom:0">
+        <label>Skor Rəngi</label>
+        <div class="csw" style="align-items:flex-start;flex-direction:row;gap:10px;">
+          <input type="color" id="sb-score-color" value="#ffffff" oninput="onFieldChange()">
+          <span style="font-size:11px;color:var(--muted);align-self:center">Rəqəm</span>
+        </div>
+      </div>
+      <div class="fg" style="margin-bottom:0">
+        <label>Vaxt Rəngi</label>
+        <div class="csw" style="align-items:flex-start;flex-direction:row;gap:10px;">
+          <input type="color" id="sb-clock-color" value="#4a4a6a" oninput="onFieldChange()">
+          <span style="font-size:11px;color:var(--muted);align-self:center">Saat</span>
+        </div>
+      </div>
+      <div class="fg" style="margin-bottom:0">
+        <label>Kölgə Effekti</label>
+        <div class="csw" style="align-items:flex-start;flex-direction:row;gap:10px;">
+          <input type="color" id="sb-overlay" value="#000000" oninput="onFieldChange()">
+          <span style="font-size:11px;color:var(--muted);align-self:center">Kölgə</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clock Control -->
+  <!-- Goal Text Language Selector -->
+  <div class="card" style="margin-bottom:14px;">
+    <span class="panel-lbl">Qol Yazısı Dili</span>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="lang-btn active" id="lang-az" onclick="setLang('az')">🇦🇿 QOOOOOOOL!</button>
+      <button class="lang-btn" id="lang-en" onclick="setLang('en')">🇬🇧 GOOOOOOOAL!</button>
+      <button class="lang-btn" id="lang-tr" onclick="setLang('tr')">🇹🇷 GOOOL!</button>
+    </div>
+  </div>
+
+  <span class="sec">Vaxt İdarəetməsi</span>
+  <div class="clock-card" id="clock-card">
+    <div class="clock-display" id="clock-disp">00:00</div>
+    <div class="clock-controls">
+      <button class="btn-clock btn-adj" onclick="adjClock(-60)" title="-1 dəqiqə">−1:00</button>
+      <button class="btn-clock btn-adj" onclick="adjClock(-1)"  title="-1 saniyə">−1</button>
+      <button class="btn-clock btn-start" id="btn-start" onclick="toggleClock()">▶ BAŞLAT</button>
+      <button class="btn-clock btn-adj" onclick="adjClock(1)"   title="+1 saniyə">+1</button>
+      <button class="btn-clock btn-adj" onclick="adjClock(60)"  title="+1 dəqiqə">+1:00</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <button class="btn btn-reset-clock" style="flex:1" onclick="resetClock()">↺ Vaxtı Sıfırla</button>
+      <button class="btn btn-ghost" style="flex:1" onclick="autoPublish()">📡 İndi Yayımla</button>
+    </div>
+    <div class="clock-hint" id="clock-hint">Dayandırılıb</div>
+  </div>
+
+  <!-- Player Show -->
+  <span class="sec">Oyunçu Göstər</span>
+  <div class="card">
+    <div class="player-grid">
+      <div class="fg" style="margin-bottom:0"><label>Nömrə</label><input class="fi" id="p-num" placeholder="10" style="text-align:center;font-size:18px"></div>
+      <div class="fg" style="margin-bottom:0"><label>Oyunçu Adı</label><input class="fi" id="p-name" placeholder="Ad..."></div>
+      <div class="fg" style="margin-bottom:0"><label>Məlumat</label><input class="fi" id="p-info" placeholder="Asist, Sarı kart..."></div>
+      <div style="display:flex;flex-direction:column;gap:7px;">
+        <button class="btn-act" id="btn-sh" onclick="showPlayer('home')" style="padding:9px 12px;font-size:13px;border-radius:8px;">EV GÖS</button>
+        <button class="btn-act" id="btn-sa" onclick="showPlayer('away')" style="padding:9px 12px;font-size:13px;border-radius:8px;">SƏF GÖS</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Substitution -->
+  <span class="sec">Əvəzetmə</span>
+  <div class="card">
+    <div style="display:grid;grid-template-columns:70px 1fr 70px 1fr auto;gap:10px;align-items:end">
+      <div class="fg" style="margin-bottom:0"><label>↓ Nömrə</label><input class="fi" id="sub-out-num" placeholder="9" style="text-align:center;font-size:18px;color:#ff5252;"></div>
+      <div class="fg" style="margin-bottom:0"><label>↓ Çıxan</label><input class="fi" id="sub-out-name" placeholder="Çıxan oyunçu..." style="color:#ff8a80;"></div>
+      <div class="fg" style="margin-bottom:0"><label>↑ Nömrə</label><input class="fi" id="sub-in-num" placeholder="17" style="text-align:center;font-size:18px;color:#00e676;"></div>
+      <div class="fg" style="margin-bottom:0"><label>↑ Girən</label><input class="fi" id="sub-in-name" placeholder="Girən oyunçu..." style="color:#69f0ae;"></div>
+      <div style="display:flex;flex-direction:column;gap:7px;">
+        <button class="btn-act" id="btn-sub-h" onclick="showSub('home')" style="padding:9px 12px;font-size:13px;border-radius:8px;">EV</button>
+        <button class="btn-act" id="btn-sub-a" onclick="showSub('away')" style="padding:9px 12px;font-size:13px;border-radius:8px;">SƏF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Goal Buttons -->
+  <span class="sec">Qol İdarəetməsi</span>
+  <div class="action-row" style="margin-bottom:14px;">
+    <button class="btn-act" id="btn-hg" onclick="goal('home')">⚽ EV QOL</button>
+    <button class="btn-act" id="btn-ag" onclick="goal('away')">⚽ SƏF QOL</button>
+    <button class="btn-act btn-danger" onclick="resetMatch()">↺ SIFIRLA</button>
+  </div>
+
+  <!-- Scorebug Preview -->
+  <span class="sec">Canlı Önizləmə</span>
+  <div id="sb-outer">
+    <div id="scorebug">
+      <div class="bug-body">
+        <div class="tb left" id="tb-h">
+          <img class="t-logo" id="logo-h" src="" alt="" style="display:none" crossorigin="anonymous">
+          <div class="t-info">
+            <div class="t-abbr" id="abbr-h">QAL</div>
+            <div class="t-full" id="name-h">Qarabağ</div>
+          </div>
+        </div>
+        <div class="sb-c" id="sb-c">
+          <div class="srow">
+            <span class="snum" id="sn-h">0</span>
+            <span class="ssep">–</span>
+            <span class="snum" id="sn-a">0</span>
+          </div>
+          <div class="stimer" id="s-clock">00:00</div>
+          <img class="scup" id="scup" src="" alt="" crossorigin="anonymous">
+        </div>
+        <div class="tb right" id="tb-a">
+          <img class="t-logo" id="logo-a" src="" alt="" style="display:none" crossorigin="anonymous">
+          <div class="t-info">
+            <div class="t-abbr" id="abbr-a">NFK</div>
+            <div class="t-full" id="name-a">Neftçi</div>
+          </div>
+        </div>
+      </div>
+      <div id="goal-overlay">
+        <div class="gbg">
+          <div class="gbgl" id="gbgl"></div>
+          <div class="gbgr" id="gbgr"></div>
+        </div>
+        <div class="gstripe"></div>
+        <div class="gword-wrap"><div class="gword" id="gword"></div></div>
+      </div>
+    </div>
+    <div id="player-banner">
+      <div class="pb-inner">
+        <div class="pb-bar"  id="pb-bar1"></div>
+        <div class="pb-num"  id="pb-num"></div>
+        <div class="pb-info">
+          <div class="pb-name"   id="pb-name"></div>
+          <div class="pb-div"></div>
+          <div class="pb-detail" id="pb-detail"></div>
+        </div>
+        <div class="pb-bar2" id="pb-bar2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Substitution Banner -->
+  <div id="sub-banner">
+    <div class="sub-inner" id="sub-inner">
+      <div class="sub-bar" id="sub-bar1"></div>
+      <div class="sub-icon-col">⇄</div>
+      <div class="sub-players">
+        <div class="sub-slot sub-slot-top">
+          <div class="sub-card hide-up" id="card-out">
+            <span class="sub-arrow out">↓</span>
+            <span class="sub-num" id="sub-out-num-disp"></span>
+            <span class="sub-name" id="sub-out-name-disp"></span>
+          </div>
+        </div>
+        <div class="sub-slot sub-slot-bot">
+          <div class="sub-card hide-down" id="card-in">
+            <span class="sub-arrow in">↑</span>
+            <span class="sub-num" id="sub-in-num-disp"></span>
+            <span class="sub-name" id="sub-in-name-disp"></span>
+          </div>
+        </div>
+      </div>
+      <div class="sub-bar2" id="sub-bar2"></div>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="hist-sec" id="hist-sec" style="display:none">
+    <div class="hist-head">Oyun Hadisələri</div>
+    <div id="hist-list"></div>
+  </div>
+
+</div>
+<div id="toast"></div>
+
+<script>
+// ── STATE ──
+let hs=0, as_=0;
+let clockSec=0, clockRunning=false, clockTimer=null;
+let ghToken=localStorage.getItem('gh_gist_token')||'';
+let publishedGistId=localStorage.getItem('published_gist_id')||'';
+let autoPublishTimer=null;
+let pendingPublish=false;
+
+// ── INIT ──
+if(ghToken){ el('gh-token').value=ghToken; setTokDot('ok'); el('btn-publish').disabled=false; }
+if(publishedGistId){ showPublishedLink(publishedGistId); }
+renderBug();
+updateClockDisplay();
+
+// ── HELPERS ──
+function el(id){ return document.getElementById(id); }
+function v(id){ return el(id).value; }
+function set(id,t){ el(id).textContent=t; }
+
+// ── TOKEN ──
+function saveToken(){
+  const val=v('gh-token').trim(); if(!val) return;
+  ghToken=val; localStorage.setItem('gh_gist_token',val);
+  setTokDot('ok');
+  el('btn-publish').disabled=false;
+  el('pub-status').textContent='Hazır — YAYIMLA düyməsinə basın';
+}
+function setTokDot(s){ el('tok-dot').className='dot '+(s||''); }
+
+// ── CLOCK ──
+function toggleClock(){
+  if(clockRunning) stopClock(); else startClock();
+}
+function startClock(){
+  if(clockRunning) return;
+  clockRunning=true;
+  el('btn-start').textContent='⏸ DURDUR';
+  el('btn-start').className='btn-clock btn-stop';
+  el('clock-card').classList.add('clock-running');
+  el('clock-hint').textContent='Çalışır...';
+  clockTimer=setInterval(()=>{
+    clockSec++;
+    updateClockDisplay();
+    scheduleAutoPublish();
+  },1000);
+}
+function stopClock(){
+  if(!clockRunning) return;
+  clockRunning=false;
+  clearInterval(clockTimer); clockTimer=null;
+  el('btn-start').textContent='▶ BAŞLAT';
+  el('btn-start').className='btn-clock btn-start';
+  el('clock-card').classList.remove('clock-running');
+  el('clock-hint').textContent='Dayandırılıb';
+  scheduleAutoPublish();
+}
+function resetClock(){
+  stopClock();
+  clockSec=0;
+  updateClockDisplay();
+  scheduleAutoPublish();
+}
+function adjClock(delta){
+  clockSec=Math.max(0, clockSec+delta);
+  updateClockDisplay();
+  scheduleAutoPublish();
+}
+function updateClockDisplay(){
+  const t=fmt(clockSec);
+  el('clock-disp').textContent=t;
+  el('s-clock').textContent=t;
+}
+function fmt(s){ const m=Math.floor(s/60),sec=s%60; return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0'); }
+
+// ── RENDER BUG ──
+function renderBug(){
+  const hc1=v('h-c1'),hc2=v('h-c2'),ac1=v('a-c1'),ac2=v('a-c2');
+  set('abbr-h',v('h-abbr')||'EV'); set('name-h',v('h-name'));
+  set('abbr-a',v('a-abbr')||'SƏF'); set('name-a',v('a-name'));
+  el('tb-h').style.background=`linear-gradient(135deg,${hc1},${hc2})`;
+  el('tb-a').style.background=`linear-gradient(135deg,${ac1},${ac2})`;
+  styleBtn('btn-hg',hc1,hc2); styleBtn('btn-ag',ac1,ac2);
+  styleBtn('btn-sh',hc1,hc2); styleBtn('btn-sa',ac1,ac2);
+  styleBtn('btn-sub-h',hc1,hc2); styleBtn('btn-sub-a',ac1,ac2);
+  // Scoreboard center colors
+  const sbBg=v('sb-bg')||'#07070e';
+  const sbScore=v('sb-score-color')||'#ffffff';
+  const sbClock=v('sb-clock-color')||'#4a4a6a';
+  const sbOv=v('sb-overlay')||'#000000';
+  el('sb-c').style.background=sbBg; document.querySelectorAll('.ssep').forEach(e=>e.style.color=sbScore+'66');
+  document.querySelectorAll('.snum').forEach(e=>e.style.color=sbScore);
+  el('s-clock').style.color=sbClock;
+  // team overlay shade
+  document.querySelectorAll('.tb::after').forEach(e=>{});
+  // update CSS var for overlay
+  document.documentElement.style.setProperty('--team-overlay',sbOv+'44');
+}
+function styleBtn(id,c1,c2){ const b=el(id); b.style.background=`linear-gradient(135deg,${c1},${c2})`; b.style.color='#fff'; }
+
+// ── GOAL TEXT LANGUAGE ──
+const GOAL_TEXTS={ az:'QOOOOOOOL!', en:'GOOOOOOOAL!', tr:'GOOOL!' };
+let currentLang='az';
+function setLang(lang){
+  currentLang=lang;
+  ['az','en','tr'].forEach(l=>el('lang-'+l).classList.toggle('active',l===lang));
+  el('gword').textContent=GOAL_TEXTS[lang];
+}
+
+// ── FIELD CHANGE → schedule auto-publish ──
+function onFieldChange(){ renderBug(); scheduleAutoPublish(); }
+
+// ── AUTO PUBLISH (debounce 800ms after last change) ──
+function scheduleAutoPublish(){
+  if(!publishedGistId||!ghToken) return; // only if already published once
+  clearTimeout(autoPublishTimer);
+  setSyncStatus('syncing');
+  autoPublishTimer=setTimeout(()=>autoPublish(),800);
+}
+async function autoPublish(){
+  if(!ghToken||!publishedGistId) return;
+  setSyncStatus('syncing');
+  const ok=await pushState();
+  setSyncStatus(ok?'synced':'err');
+}
+function setSyncStatus(s){
+  const d=el('auto-dot'), t=el('auto-txt');
+  if(s==='syncing'){ d.className='auto-dot syncing'; t.textContent='Sinxronlaşır...'; }
+  else if(s==='synced'){ d.className='auto-dot synced'; t.textContent='Sinxronlaşdı ✓'; }
+  else { d.className='auto-dot err'; t.textContent='Sinxronizasiya xətası'; }
+}
+
+// ── PROXY (bypass CORS for Transfermarkt etc.) ──
+function proxyUrl(url){
+  if(!url) return '';
+  if(url.startsWith('data:') || url.includes('weserv.nl')) return url;
+  return 'https://images.weserv.nl/?url='+encodeURIComponent(url)+'&w=120&h=120&fit=contain&bg=transparent';
+}
+
+// ── LOGO/CUP PREVIEWS ──
+function previewLogo(side){
+  const url=v(side+'-logo').trim();
+  const prev=el(side+'-logo-prev'), bi=el('logo-'+(side==='h'?'h':'a'));
+  if(url){
+    const p=proxyUrl(url);
+    prev.src=p; prev.classList.add('v');
+    bi.src=p; bi.style.display='block';
+    bi.onerror=()=>bi.style.display='none';
+  } else { prev.classList.remove('v'); bi.style.display='none'; }
+  scheduleAutoPublish();
+}
+function previewCup(){
+  const url=v('cup-logo').trim(), p=el('cup-prev'), ci=el('scup');
+  if(url){
+    const px=proxyUrl(url);
+    p.src=px; p.classList.add('v');
+    ci.src=px; ci.classList.add('v');
+    ci.onerror=()=>ci.classList.remove('v');
+  } else { p.classList.remove('v'); ci.classList.remove('v'); }
+  scheduleAutoPublish();
+}
+
+// ── GOAL ──
+function goal(side){
+  if(side==='home') hs++; else as_++;
+  set('sn-h',hs); set('sn-a',as_);
+  const sEl=el(side==='home'?'sn-h':'sn-a');
+  sEl.classList.remove('nflash'); void sEl.offsetWidth; sEl.classList.add('nflash');
+  const c1=v(side==='home'?'h-c1':'a-c1'), c2=v(side==='home'?'h-c2':'a-c2');
+  animateGoal(c1,c2,side);
+  scheduleAutoPublish();
+  logGoal(side);
+}
+
+function animateGoal(c1,c2,side){
+  const ov=el('goal-overlay'),L=el('gbgl'),R=el('gbgr');
+  const gword=el('gword');
+  const txt=GOAL_TEXTS[currentLang]||'QOOOOOOOL!';
+
+  // Build letter spans
+  gword.innerHTML=txt.split('').map(ch=>`<span class="gl">${ch}</span>`).join('');
+  const letters=[...gword.querySelectorAll('.gl')];
+
+  L.style.background=c1; R.style.background=c2;
+  L.style.animation='none'; R.style.animation='none'; void L.offsetWidth;
+
+  // bg wipe always left→right
+  L.style.transformOrigin='left center'; R.style.transformOrigin='left center';
+  L.style.animation='wiL .4s ease forwards'; R.style.animation='wiL .4s .07s ease forwards';
+
+  ov.style.transition='none'; ov.style.opacity='1'; ov.style.pointerEvents='auto';
+
+  // Letters fall in left→right, each with slight delay
+  // While falling they flash (glFall + glFlash alternating)
+  letters.forEach((lt,i)=>{
+    const delay=150+i*80;
+    setTimeout(()=>{
+      lt.style.animation=`glFall .45s ease forwards`;
+      // After landing start flash
+      setTimeout(()=>{
+        lt.style.animation=`glFlash .5s ease infinite`;
+        lt.style.opacity='1';
+        lt.style.transform='rotateX(0) translateZ(0)';
+      },450);
+    },delay);
+  });
+
+  // Wipe out (bg and letters)
+  setTimeout(()=>{
+    letters.forEach(lt=>{ lt.style.animation='none'; lt.style.opacity='0'; });
+    L.style.animation='none'; R.style.animation='none'; void L.offsetWidth;
+    L.style.animation='woL .35s ease forwards'; R.style.animation='woL .35s .06s ease forwards';
+  },2700);
+  setTimeout(()=>{ ov.style.pointerEvents='none'; ov.style.opacity='0'; gword.innerHTML=''; },3100);
+}
+
+// ── PLAYER SHOW ──
+function showPlayer(side){
+  const num=v('p-num'),name=v('p-name'),info=v('p-info');
+  const c1=v(side==='home'?'h-c1':'a-c1'), c2=v(side==='home'?'h-c2':'a-c2');
+  showPlayerBanner(num,name,info,c1,c2);
+}
+function showPlayerBanner(num,name,info,c1,c2){
+  const banner=el('player-banner');
+  set('pb-num',num||''); set('pb-name',name||''); set('pb-detail',info||'');
+  el('pb-bar1').style.background=c1; el('pb-bar2').style.background=c2;
+  banner.classList.remove('open'); void banner.offsetWidth;
+  setTimeout(()=>{ banner.classList.add('open'); clearTimeout(banner._t); banner._t=setTimeout(()=>banner.classList.remove('open'),5000); },20);
+}
+
+// ── SUBSTITUTION ──
+function showSub(side){
+  const outNum=v('sub-out-num'), outName=v('sub-out-name');
+  const inNum=v('sub-in-num'),   inName=v('sub-in-name');
+  const c1=v(side==='home'?'h-c1':'a-c1'), c2=v(side==='home'?'h-c2':'a-c2');
+  showSubBanner(outNum,outName,inNum,inName,c1,c2,side);
+}
+function showSubBanner(outNum,outName,inNum,inName,c1,c2,side){
+  el('player-banner').classList.remove('open');
+  el('sub-bar1').style.background=c1; el('sub-bar2').style.background=c2;
+  const banner=el('sub-banner');
+  const cardOut=el('card-out'), cardIn=el('card-in');
+  clearTimeout(banner._t1); clearTimeout(banner._t2); clearTimeout(banner._t3);
+
+  set('sub-out-num-disp',outNum||''); set('sub-out-name-disp',outName||'');
+  set('sub-in-num-disp',inNum||'');   set('sub-in-name-disp',inName||'');
+
+  // Reset instantly
+  cardOut.style.transition='none'; cardIn.style.transition='none';
+  cardOut.className='sub-card hide-up'; cardIn.className='sub-card hide-down';
+  banner.classList.add('open');
+
+  // Phase 1: slide in (çıxan yuxarı slota, girən aşağı slota)
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    cardOut.style.transition=''; cardIn.style.transition='';
+    cardOut.className='sub-card show'; cardIn.className='sub-card show';
+
+    // After 3s: SWAP
+    banner._t1=setTimeout(()=>{
+      cardOut.className='sub-card hide-down'; cardIn.className='sub-card hide-up';
+      banner._t2=setTimeout(()=>{
+        const topSlot=document.querySelector('.sub-slot-top');
+        const botSlot=document.querySelector('.sub-slot-bot');
+        topSlot.appendChild(cardIn); botSlot.appendChild(cardOut);
+        cardOut.style.transition='none'; cardIn.style.transition='none';
+        cardOut.className='sub-card hide-down'; cardIn.className='sub-card hide-up';
+        requestAnimationFrame(()=>requestAnimationFrame(()=>{
+          cardOut.style.transition=''; cardIn.style.transition='';
+          cardIn.className='sub-card show'; cardOut.className='sub-card show';
+          banner._t3=setTimeout(()=>{
+            cardOut.className='sub-card hide-down'; cardIn.className='sub-card hide-up';
+            setTimeout(()=>{
+              banner.classList.remove('open');
+              topSlot.appendChild(cardOut); botSlot.appendChild(cardIn);
+            },560);
+          },3000);
+        }));
+      },560);
+    },3000);
+  }));
+
+  // Push to display
+  if(publishedGistId&&ghToken){
+    const state=buildState();
+    state.subShow={outNum,outName,inNum,inName,side,ts:new Date().toISOString()};
+    fetch('https://api.github.com/gists/'+publishedGistId,{
+      method:'PATCH',
+      headers:{'Authorization':'token '+ghToken,'Content-Type':'application/json'},
+      body:JSON.stringify({files:{'scorebug_state.json':{content:JSON.stringify(state,null,2)}}})
+    });
+  }
+}
+
+// ── RESET ──
+function resetMatch(){
+  hs=0; as_=0;
+  set('sn-h',0); set('sn-a',0);
+  el('hist-list').innerHTML=''; el('hist-sec').style.display='none';
+  scheduleAutoPublish();
+}
+
+// ═══════════════════════════════════════
+// ── PUBLISH SYSTEM ──
+// ═══════════════════════════════════════
+function buildState(includeGoalEvent){
+  return {
+    v:3,
+    published: new Date().toISOString(),
+    clock: fmt(clockSec),
+    clockRunning: clockRunning,
+    home:{ abbr:v('h-abbr'), name:v('h-name'), logo:v('h-logo'), c1:v('h-c1'), c2:v('h-c2'), score:hs },
+    away:{ abbr:v('a-abbr'), name:v('a-name'), logo:v('a-logo'), c1:v('a-c1'), c2:v('a-c2'), score:as_ },
+    cup:{ name:v('cup-name'), logo:v('cup-logo') },
+    sb:{ bg:v('sb-bg')||'#07070e', scoreColor:v('sb-score-color')||'#ffffff', clockColor:v('sb-clock-color')||'#4a4a6a' },
+    goalEvent: includeGoalEvent||null,
+    goalText: GOAL_TEXTS[currentLang]||'QOOOOOOOL!',
+    subShow: null
+  };
+}
+
+async function publish(){
+  if(!ghToken){ toast('Token lazımdır!','err'); return; }
+  const btn=el('btn-publish');
+  btn.disabled=true; btn.textContent='⏳ YAYIMLANIR...';
+  const ok=await pushState(true);
+  if(ok){ showPublishedLink(publishedGistId); copyDisplayLink(false); }
+  else toast('XƏTA baş verdi','err');
+  btn.disabled=false; btn.textContent='⬆ YAYIMLA';
+}
+
+async function pushState(isFirst){
+  const state=buildState();
+  try{
+    if(publishedGistId&&!isFirst){
+      // UPDATE
+      const res=await fetch('https://api.github.com/gists/'+publishedGistId,{
+        method:'PATCH',
+        headers:{'Authorization':'token '+ghToken,'Content-Type':'application/json'},
+        body:JSON.stringify({files:{'scorebug_state.json':{content:JSON.stringify(state,null,2)}}})
+      });
+      return res.ok;
+    } else if(!publishedGistId||isFirst){
+      // CREATE (or first publish)
+      const res=await fetch('https://api.github.com/gists',{
+        method:'POST',
+        headers:{'Authorization':'token '+ghToken,'Content-Type':'application/json'},
+        body:JSON.stringify({
+          description:'ScoreBug Live State',public:true,
+          files:{'scorebug_state.json':{content:JSON.stringify(state,null,2)}}
+        })
+      });
+      if(!res.ok) return false;
+      const data=await res.json();
+      publishedGistId=data.id;
+      localStorage.setItem('published_gist_id',publishedGistId);
+      return true;
+    }
+  }catch(e){ return false; }
+}
+
+function showPublishedLink(gistId){
+  const dUrl=location.href.replace('panel.html','display.html')+'?gist='+gistId;
+  el('pub-status').className='pub-status live';
+  el('pub-status').textContent='🟢 CANLI — Gist: '+gistId.slice(0,10)+'...';
+  el('pub-link').innerHTML='<a href="'+dUrl+'" target="_blank">'+dUrl+'</a>';
+  el('btn-copy-link').style.display='';
+}
+
+function copyDisplayLink(silent){
+  if(!publishedGistId) return;
+  const dUrl=location.href.replace('panel.html','display.html')+'?gist='+publishedGistId;
+  if(navigator.clipboard) navigator.clipboard.writeText(dUrl).catch(()=>fb(dUrl)); else fb(dUrl);
+  toast('SKORBORD LİNKİ KOPİALANDI','gold');
+}
+function fb(t){ const ta=document.createElement('textarea'); ta.value=t; ta.style.cssText='position:fixed;opacity:0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
+
+// ── LOG GOAL (per-event gist) ──
+async function logGoal(side){
+  const hA=v('h-abbr')||'EV', aA=v('a-abbr')||'SƏF';
+  const hN=v('h-name'), aN=v('a-name');
+  const cup=v('cup-name'), clock=fmt(clockSec);
+  const tName=side==='home'?hN:aN;
+  el('hist-sec').style.display='block';
+  const iid='ev-'+Date.now();
+  const item=document.createElement('div');
+  item.className='h-item'; item.id=iid;
+  item.innerHTML=`<div style="flex:1"><div class="h-score">${hA} ${hs}–${as_} ${aA}</div><div class="h-meta">${tName} · ${cup}</div><div class="glink" id="gl-${iid}"><span class="gloading">Gist yaradılır...</span></div></div><div class="h-time">${clock}</div>`;
+  el('hist-list').prepend(item);
+  const url=await createEventGist({side,tName,clock,hA,aA,hN,aN,scoreH:hs,scoreA:as_,cup});
+  const glEl=el('gl-'+iid);
+  if(url){ glEl.innerHTML=`<a href="${url}" target="_blank" rel="noopener">📎 GitHub Gist →</a>`; fb(url); }
+  else glEl.innerHTML=`<span class="gloading" style="color:#ff5252">${ghToken?'Xəta':'Token lazımdır'}</span>`;
+}
+async function createEventGist(e){
+  if(!ghToken) return null;
+  const md=`# ⚽ QOL — ${e.tName}\n\n| | |\n|---|---|\n| **${e.hN}** | ${e.scoreH} |\n| **${e.aN}** | ${e.scoreA} |\n| **Hesab** | ${e.hA} ${e.scoreH}–${e.scoreA} ${e.aA} |\n| **Vaxt** | ${e.clock} |\n| **Kubok/Liqa** | ${e.cup} |\n\n\`\`\`json\n${JSON.stringify(e,null,2)}\n\`\`\`\n`;
+  try{
+    const res=await fetch('https://api.github.com/gists',{method:'POST',headers:{'Authorization':'token '+ghToken,'Content-Type':'application/json'},body:JSON.stringify({description:`⚽ ${e.hN} ${e.scoreH}–${e.scoreA} ${e.aN} | ${e.clock}`,public:false,files:{[`qol_${e.hA}_${e.aA}_${e.clock.replace(':','d')}s.md`]:{content:md}}})});
+    if(!res.ok) return null;
+    return (await res.json()).html_url;
+  }catch{ return null; }
+}
+
+function toast(msg,type){ const t=el('toast'); t.textContent=msg; t.className='show'+(type?' '+type:''); setTimeout(()=>t.className='',2600); }
+</script>
+</body>
+</html>
