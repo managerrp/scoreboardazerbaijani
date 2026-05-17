@@ -111,8 +111,8 @@ html, body {
 @keyframes woR  { from{transform:scaleX(1)} to{transform:scaleX(0)} }
 
 /* ── GOAL WORD 3D ── */
-.gword-wrap{position:relative;z-index:5;perspective:600px;display:flex;align-items:center;justify-content:center;}
-.gword{font-family:'Bebas Neue',sans-serif;font-size:clamp(56px,12vw,108px);letter-spacing:8px;color:#fff;white-space:nowrap;display:flex;align-items:center;transform-style:preserve-3d;}
+.gword-wrap{position:absolute;inset:0;z-index:5;perspective:800px;display:flex;align-items:center;justify-content:center;}
+.gword{font-family:'Bebas Neue',sans-serif;font-size:clamp(52px,11vw,100px);letter-spacing:4px;color:#fff;white-space:nowrap;display:flex;align-items:center;justify-content:center;transform-style:preserve-3d;}
 .gl{display:inline-block;opacity:0;transform:rotateX(90deg) translateZ(20px);transition:none;text-shadow:0 4px 0 rgba(0,0,0,0.5),0 0 20px #fff,0 0 40px rgba(255,255,255,0.5);filter:drop-shadow(0 6px 8px rgba(0,0,0,0.6));}
 @keyframes glFall{0%{opacity:0;transform:rotateX(90deg) translateZ(20px);}60%{opacity:1;transform:rotateX(-8deg) translateZ(4px);}80%{transform:rotateX(4deg) translateZ(2px);}100%{opacity:1;transform:rotateX(0deg) translateZ(0);}}
 @keyframes glFlash{0%,100%{text-shadow:0 4px 0 rgba(0,0,0,0.5),0 0 30px #fff,0 0 60px #fff,0 0 100px rgba(255,255,255,0.6);color:#fff;}50%{text-shadow:0 4px 0 rgba(0,0,0,0.3),0 0 6px rgba(255,255,255,0.3);color:rgba(255,255,255,0.3);}}
@@ -129,16 +129,6 @@ html, body {
 
 
 
-
-
-  100% { clip-path: inset(0 0% 0 0); }
-}
-
-  100% { clip-path: inset(0 0 0 0%); }
-}
-
-  50%     { opacity:0.25; text-shadow:none; }
-}
 
 /* Score flash */
 @keyframes numF {
@@ -493,6 +483,10 @@ function animateGoal(c1, c2, side) {
 
   gword.innerHTML = txt.split('').map(ch=>`<span class="gl">${ch}</span>`).join('');
   const letters = [...gword.querySelectorAll('.gl')];
+  // Symmetric: adjust letter-spacing so all texts span same width
+  const baseLen = 10; // reference: QOOOOOOOL!
+  const spacing = Math.max(4, Math.round(4 + (baseLen - txt.length) * 7));
+  gword.style.letterSpacing = spacing + 'px';
 
   L.style.background = c1; R.style.background = c2;
   L.style.animation = 'none'; R.style.animation = 'none';
