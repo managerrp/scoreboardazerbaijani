@@ -144,14 +144,14 @@ input[type=color]{width:46px;height:34px;border-radius:8px;border:2px solid var(
 @keyframes woR{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 /* ── GOAL WORD 3D ── */
 .gword-wrap{
-  position:relative;z-index:5;
-  perspective:600px;
+  position:absolute;inset:0;z-index:5;
+  perspective:800px;
   display:flex;align-items:center;justify-content:center;
 }
 .gword{
   font-family:'Bebas Neue',sans-serif;
   font-size:clamp(56px,12vw,108px);
-  letter-spacing:8px;
+  letter-spacing:4px;
   color:#fff;
   white-space:nowrap;
   display:flex;align-items:center;
@@ -235,6 +235,16 @@ input[type=color]{width:46px;height:34px;border-radius:8px;border:2px solid var(
 .sub-name{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:#fff;white-space:nowrap;}
 .sub-bar2{width:5px;flex-shrink:0;}
 
+/* UI LANGUAGE SWITCHER */
+.ui-lang-btn{
+  padding:5px 14px;border-radius:20px;border:1px solid var(--border);
+  background:transparent;color:var(--muted);
+  font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;
+  letter-spacing:1px;cursor:pointer;transition:all .2s;
+}
+.ui-lang-btn:hover{border-color:var(--green);color:var(--text);}
+.ui-lang-btn.active{border-color:var(--green);color:#fff;background:rgba(0,230,118,0.15);}
+
 /* LANG BUTTONS */
 .lang-btn{
   padding:9px 18px;border-radius:8px;border:1px solid var(--border);
@@ -283,57 +293,65 @@ input[type=color]{width:46px;height:34px;border-radius:8px;border:2px solid var(
 
   <div class="header">
     <h1>ScoreBug</h1>
-    <div class="header-sub">İdarəetmə Paneli · Live Scoreboard</div>
+    <div class="header-sub" data-i18n="subtitle">Yönetim Paneli · Live Scoreboard</div>
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;">
+      <button class="ui-lang-btn active" id="ui-tr" onclick="setUiLang('tr')">🇹🇷 TR</button>
+      <button class="ui-lang-btn" id="ui-az" onclick="setUiLang('az')">🇦🇿 AZ</button>
+      <button class="ui-lang-btn" id="ui-en" onclick="setUiLang('en')">🇬🇧 EN</button>
+    </div>
   </div>
 
   <!-- GitHub Token -->
-  <span class="sec">GitHub Ayarı</span>
+  <span class="sec" data-i18n="sec_github">GitHub Ayarı</span>
   <div class="card">
     <div class="token-row">
       <div class="dot" id="tok-dot"></div>
       <span class="tlabel">GitHub Token</span>
       <input type="password" class="tok" id="gh-token" placeholder="ghp_xxxxxxxxxxxxxxxx">
-      <button class="btn btn-green" onclick="saveToken()">SAXLA</button>
+      <button class="btn btn-green" onclick="saveToken()" data-i18n="btn_save">Kaydet</button>
     </div>
     <div class="pub-row">
-      <button class="btn btn-publish" id="btn-publish" onclick="publish()" disabled>⬆ YAYIMLA</button>
+      <button class="btn btn-publish" id="btn-publish" onclick="publish()" disabled data-i18n="btn_publish">⬆ YAYIMLA</button>
       <div style="flex:1;min-width:180px;">
-        <div class="pub-status" id="pub-status">Token daxil edilmədən yayımlanmaz</div>
+        <div class="pub-status" id="pub-status">Token girilmeden yayımlanamaz</div>
         <div class="pub-link" id="pub-link"></div>
       </div>
-      <button class="btn btn-ghost" id="btn-copy-link" style="display:none" onclick="copyDisplayLink()">🔗 LİNKİ KOPİALA</button>
+      <div id="copy-btns" style="display:none;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-green" id="btn-copy-display" onclick="copyDisplayLink()" data-i18n="btn_display_link">📺 Skorbord Linki</button>
+        <button class="btn btn-ghost" id="btn-copy-admin" onclick="copyAdminLink()" data-i18n="btn_admin_link">⚙️ Panel Linki</button>
+      </div>
     </div>
     <div class="auto-pub-row">
       <div class="auto-dot" id="auto-dot"></div>
-      <span class="auto-txt" id="auto-txt">Hər dəyişiklik avtomatik yayımlanır</span>
+      <span class="auto-txt" id="auto-txt">Her değişiklik otomatik yayımlanır</span>
     </div>
   </div>
 
   <!-- Teams -->
-  <span class="sec">Komandalar</span>
+  <span class="sec" data-i18n="sec_teams">Komandalar</span>
   <div class="teams-grid" style="margin-bottom:14px;">
     <!-- Home -->
     <div class="card" style="margin-bottom:0">
-      <span class="panel-lbl">🏠 Ev Sahibi</span>
-      <div class="fg"><label>Qısaltma</label><input class="fa" id="h-abbr" value="" placeholder="QAL..." maxlength="5" oninput="onFieldChange()"></div>
-      <div class="fg"><label>Komanda Adı</label><input class="fi" id="h-name" value="" placeholder="Komanda adı..." oninput="onFieldChange()"></div>
+      <span class="panel-lbl" data-i18n="home_team">🏠 Ev Sahibi</span>
+      <div class="fg"><label data-i18n="lbl_abbr">Kısaltma</label><input class="fa" id="h-abbr" value="" placeholder="QAL..." maxlength="5" oninput="onFieldChange()"></div>
+      <div class="fg"><label data-i18n="lbl_team_name">Takım Adı</label><input class="fi" id="h-name" value="" placeholder="Takım adı..." oninput="onFieldChange()"></div>
       <div class="fg">
-        <label>Loqo URL</label>
+        <label data-i18n="lbl_logo">Logo URL</label>
         <input class="fi" id="h-logo" placeholder="https://..." oninput="previewLogo('h')">
         <img class="lprev" id="h-logo-prev" alt="">
       </div>
       <div class="fg">
-        <label>Rənglər</label>
+        <label data-i18n="lbl_colors">Renkler</label>
         <div class="cpair">
-          <div class="csw"><label>Əsas</label><input type="color" id="h-c1" value="#e8000d" oninput="onFieldChange()"></div>
-          <div class="csw"><label>İkinci</label><input type="color" id="h-c2" value="#f5a623" oninput="onFieldChange()"></div>
+          <div class="csw"><label data-i18n="lbl_primary">Birincil</label><input type="color" id="h-c1" value="#e8000d" oninput="onFieldChange()"></div>
+          <div class="csw"><label data-i18n="lbl_secondary">İkincil</label><input type="color" id="h-c2" value="#f5a623" oninput="onFieldChange()"></div>
         </div>
       </div>
     </div>
     <div class="vs-col"><div class="vs-txt">VS</div></div>
     <!-- Away -->
     <div class="card" style="margin-bottom:0">
-      <span class="panel-lbl">✈️ Səfər</span>
+      <span class="panel-lbl" data-i18n="away_team">✈️ Deplasman</span>
       <div class="fg"><label>Qısaltma</label><input class="fa" id="a-abbr" value="" placeholder="NFK..." maxlength="5" oninput="onFieldChange()"></div>
       <div class="fg"><label>Komanda Adı</label><input class="fi" id="a-name" value="" placeholder="Komanda adı..." oninput="onFieldChange()"></div>
       <div class="fg">
@@ -352,15 +370,15 @@ input[type=color]{width:46px;height:34px;border-radius:8px;border:2px solid var(
   </div>
 
   <!-- Meta -->
-  <span class="sec">Turnir Məlumatı</span>
+  <span class="sec" data-i18n="sec_tournament">Turnuva Bilgisi</span>
   <div class="card">
     <div class="meta-grid">
       <div class="fg" style="margin-bottom:0">
-        <label>Kubok / Liqa Adı</label>
-        <input class="fi" id="cup-name" value="" placeholder="Liqa / Kubok adı..." oninput="onFieldChange()">
+        <label data-i18n="lbl_cup_name">Kupa / Lig Adı</label>
+        <input class="fi" id="cup-name" value="" placeholder="Lig / Kupa adı..." oninput="onFieldChange()">
       </div>
       <div class="fg" style="margin-bottom:0">
-        <label>Kubok Loqo URL</label>
+        <label data-i18n="lbl_cup_logo">Kupa Logo URL</label>
         <div class="cup-row">
           <input class="fi" id="cup-logo" placeholder="https://..." oninput="previewCup()">
           <img class="cprev" id="cup-prev" alt="">
@@ -369,28 +387,28 @@ input[type=color]{width:46px;height:34px;border-radius:8px;border:2px solid var(
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
       <div class="fg" style="margin-bottom:0">
-        <label>Skorbord Fonu</label>
+        <label data-i18n="lbl_sb_bg">Skorbord Fonu</label>
         <div class="csw" style="align-items:flex-start;flex-direction:row;gap:10px;">
           <input type="color" id="sb-bg" value="#07070e" oninput="onFieldChange()">
           <span style="font-size:11px;color:var(--muted);align-self:center">Mərkəz</span>
         </div>
       </div>
       <div class="fg" style="margin-bottom:0">
-        <label>Skor Rəngi</label>
+        <label data-i18n="lbl_score_color">Skor Rengi</label>
         <div class="csw" style="align-items:flex-start;flex-direction:row;gap:10px;">
           <input type="color" id="sb-score-color" value="#ffffff" oninput="onFieldChange()">
           <span style="font-size:11px;color:var(--muted);align-self:center">Rəqəm</span>
         </div>
       </div>
       <div class="fg" style="margin-bottom:0">
-        <label>Vaxt Rəngi</label>
+        <label data-i18n="lbl_clock_color">Saat Rengi</label>
         <div class="csw" style="align-items:flex-start;flex-direction:row;gap:10px;">
           <input type="color" id="sb-clock-color" value="#4a4a6a" oninput="onFieldChange()">
           <span style="font-size:11px;color:var(--muted);align-self:center">Saat</span>
         </div>
       </div>
       <div class="fg" style="margin-bottom:0">
-        <label>Kölgə Effekti</label>
+        <label data-i18n="lbl_overlay">Gölge Efekti</label>
         <div class="csw" style="align-items:flex-start;flex-direction:row;gap:10px;">
           <input type="color" id="sb-overlay" value="#000000" oninput="onFieldChange()">
           <span style="font-size:11px;color:var(--muted);align-self:center">Kölgə</span>
@@ -402,70 +420,70 @@ input[type=color]{width:46px;height:34px;border-radius:8px;border:2px solid var(
   <!-- Clock Control -->
   <!-- Goal Text Language Selector -->
   <div class="card" style="margin-bottom:14px;">
-    <span class="panel-lbl">Qol Yazısı Dili</span>
+    <span class="panel-lbl" data-i18n="goal_lang">Gol Yazı Dili</span>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
       <button class="lang-btn active" id="lang-az" onclick="setLang('az')">🇦🇿 QOOOOOOOL!</button>
       <button class="lang-btn" id="lang-en" onclick="setLang('en')">🇬🇧 GOOOOOOOAL!</button>
-      <button class="lang-btn" id="lang-tr" onclick="setLang('tr')">🇹🇷 GOOOL!</button>
+      <button class="lang-btn" id="lang-tr" onclick="setLang('tr')">🇹🇷 GOOOOL!</button>
     </div>
   </div>
 
-  <span class="sec">Vaxt İdarəetməsi</span>
+  <span class="sec" data-i18n="sec_clock">Saat Kontrolü</span>
   <div class="clock-card" id="clock-card">
     <div class="clock-display" id="clock-disp">00:00</div>
     <div class="clock-controls">
       <button class="btn-clock btn-adj" onclick="adjClock(-60)" title="-1 dəqiqə">−1:00</button>
       <button class="btn-clock btn-adj" onclick="adjClock(-1)"  title="-1 saniyə">−1</button>
-      <button class="btn-clock btn-start" id="btn-start" onclick="toggleClock()">▶ BAŞLAT</button>
+      <button class="btn-clock btn-start" id="btn-start" onclick="toggleClock()" data-i18n="btn_start">▶ Başlat</button>
       <button class="btn-clock btn-adj" onclick="adjClock(1)"   title="+1 saniyə">+1</button>
       <button class="btn-clock btn-adj" onclick="adjClock(60)"  title="+1 dəqiqə">+1:00</button>
     </div>
     <div style="display:flex;gap:8px;margin-top:10px;">
-      <button class="btn btn-reset-clock" style="flex:1" onclick="resetClock()">↺ Vaxtı Sıfırla</button>
-      <button class="btn btn-ghost" style="flex:1" onclick="autoPublish()">📡 İndi Yayımla</button>
+      <button class="btn btn-reset-clock" style="flex:1" onclick="resetClock()" data-i18n="btn_reset_clock">↺ Saati Sıfırla</button>
+      <button class="btn btn-ghost" style="flex:1" onclick="autoPublish()" data-i18n="btn_publish_now">📡 Şimdi Yayımla</button>
     </div>
-    <div class="clock-hint" id="clock-hint">Dayandırılıb</div>
+    <div class="clock-hint" id="clock-hint">Durduruldu</div>
   </div>
 
   <!-- Player Show -->
-  <span class="sec">Oyunçu Göstər</span>
+  <span class="sec" data-i18n="sec_player">Oyuncu Göster</span>
   <div class="card">
     <div class="player-grid">
-      <div class="fg" style="margin-bottom:0"><label>Nömrə</label><input class="fi" id="p-num" placeholder="10" style="text-align:center;font-size:18px"></div>
-      <div class="fg" style="margin-bottom:0"><label>Oyunçu Adı</label><input class="fi" id="p-name" placeholder="Ad..."></div>
-      <div class="fg" style="margin-bottom:0"><label>Məlumat</label><input class="fi" id="p-info" placeholder="Asist, Sarı kart..."></div>
+      <div class="fg" style="margin-bottom:0"><label data-i18n="lbl_number">Numara</label><input class="fi" id="p-num" placeholder="10" style="text-align:center;font-size:18px"></div>
+      <div class="fg" style="margin-bottom:0"><label data-i18n="lbl_player_name">Oyuncu Adı</label><input class="fi" id="p-name" placeholder="Ad..."></div>
+      <div class="fg" style="margin-bottom:0"><label data-i18n="lbl_info">Bilgi</label><input class="fi" id="p-info" placeholder="Asist, Sarı kart..."></div>
       <div style="display:flex;flex-direction:column;gap:7px;">
-        <button class="btn-act" id="btn-sh" onclick="showPlayer('home')" style="padding:9px 12px;font-size:13px;border-radius:8px;">EV GÖS</button>
-        <button class="btn-act" id="btn-sa" onclick="showPlayer('away')" style="padding:9px 12px;font-size:13px;border-radius:8px;">SƏF GÖS</button>
+        <button class="btn-act" id="btn-sh" onclick="showPlayer('home')" style="padding:9px 12px;font-size:13px;border-radius:8px;" data-i18n="btn_show_home">Ev Göster</button>
+        <button class="btn-act" id="btn-sa" onclick="showPlayer('away')" style="padding:9px 12px;font-size:13px;border-radius:8px;" data-i18n="btn_show_away">Dep Göster</button>
       </div>
     </div>
   </div>
 
   <!-- Substitution -->
-  <span class="sec">Əvəzetmə</span>
+  <span class="sec" data-i18n="sec_sub">Değişiklik</span>
   <div class="card">
     <div style="display:grid;grid-template-columns:70px 1fr 70px 1fr auto;gap:10px;align-items:end">
-      <div class="fg" style="margin-bottom:0"><label>↓ Nömrə</label><input class="fi" id="sub-out-num" placeholder="9" style="text-align:center;font-size:18px;color:#ff5252;"></div>
-      <div class="fg" style="margin-bottom:0"><label>↓ Çıxan</label><input class="fi" id="sub-out-name" placeholder="Çıxan oyunçu..." style="color:#ff8a80;"></div>
-      <div class="fg" style="margin-bottom:0"><label>↑ Nömrə</label><input class="fi" id="sub-in-num" placeholder="17" style="text-align:center;font-size:18px;color:#00e676;"></div>
-      <div class="fg" style="margin-bottom:0"><label>↑ Girən</label><input class="fi" id="sub-in-name" placeholder="Girən oyunçu..." style="color:#69f0ae;"></div>
+      <div class="fg" style="margin-bottom:0"><label data-i18n="lbl_out_num">↓ Numara</label><input class="fi" id="sub-out-num" placeholder="9" style="text-align:center;font-size:18px;color:#ff5252;"></div>
+      <div class="fg" style="margin-bottom:0"><label data-i18n="lbl_out_name">↓ Çıkan</label><input class="fi" id="sub-out-name" placeholder="Çıkan oyuncu..." style="color:#ff8a80;"></div>
+      <div class="fg" style="margin-bottom:0"><label data-i18n="lbl_in_num">↑ Numara</label><input class="fi" id="sub-in-num" placeholder="17" style="text-align:center;font-size:18px;color:#00e676;"></div>
+      <div class="fg" style="margin-bottom:0"><label data-i18n="lbl_in_name">↑ Giren</label><input class="fi" id="sub-in-name" placeholder="Giren oyuncu..." style="color:#69f0ae;"></div>
       <div style="display:flex;flex-direction:column;gap:7px;">
-        <button class="btn-act" id="btn-sub-h" onclick="showSub('home')" style="padding:9px 12px;font-size:13px;border-radius:8px;">EV</button>
-        <button class="btn-act" id="btn-sub-a" onclick="showSub('away')" style="padding:9px 12px;font-size:13px;border-radius:8px;">SƏF</button>
+        <button class="btn-act" id="btn-sub-h" onclick="showSub('home')" style="padding:9px 12px;font-size:13px;border-radius:8px;" data-i18n="btn_sub_home">Ev</button>
+        <button class="btn-act" id="btn-sub-a" onclick="showSub('away')" style="padding:9px 12px;font-size:13px;border-radius:8px;" data-i18n="btn_sub_away">Dep</button>
       </div>
     </div>
   </div>
 
   <!-- Goal Buttons -->
-  <span class="sec">Qol İdarəetməsi</span>
+  <span class="sec" data-i18n="sec_goal">Gol Yönetimi</span>
   <div class="action-row" style="margin-bottom:14px;">
-    <button class="btn-act" id="btn-hg" onclick="goal('home')">⚽ EV QOL</button>
-    <button class="btn-act" id="btn-ag" onclick="goal('away')">⚽ SƏF QOL</button>
-    <button class="btn-act btn-danger" onclick="resetMatch()">↺ SIFIRLA</button>
+    <button class="btn-act" id="btn-hg" onclick="goal('home')" data-i18n="btn_home_goal">⚽ Ev Golü</button>
+    <button class="btn-act" id="btn-ag" onclick="goal('away')" data-i18n="btn_away_goal">⚽ Deplasman Golü</button>
+    <button class="btn-act btn-danger" onclick="resetMatch()" data-i18n="btn_reset">↺ Sıfırla</button>
   </div>
 
   <!-- Scorebug Preview -->
-  <span class="sec">Canlı Önizləmə</span>
+  <span class="sec" data-i18n="sec_preview">Canlı Önizleme</span>
   <div id="sb-outer">
     <div id="scorebug">
       <div class="bug-body">
@@ -543,7 +561,7 @@ input[type=color]{width:46px;height:34px;border-radius:8px;border:2px solid var(
 
   <!-- History -->
   <div class="hist-sec" id="hist-sec" style="display:none">
-    <div class="hist-head">Oyun Hadisələri</div>
+    <div class="hist-head">Maç Olayları</div>
     <div id="hist-list"></div>
   </div>
 
@@ -732,6 +750,10 @@ function animateGoal(c1,c2,side){
   // Build letter spans
   gword.innerHTML=txt.split('').map(ch=>`<span class="gl">${ch}</span>`).join('');
   const letters=[...gword.querySelectorAll('.gl')];
+  // Symmetric: adjust letter-spacing so all texts span same width
+  const baseLen=10;
+  const spacing=Math.max(4,Math.round(4+(baseLen-txt.length)*7));
+  gword.style.letterSpacing=spacing+'px';
 
   L.style.background=c1; R.style.background=c2;
   L.style.animation='none'; R.style.animation='none'; void L.offsetWidth;
@@ -875,7 +897,7 @@ async function publish(){
   const btn=el('btn-publish');
   btn.disabled=true; btn.textContent='⏳ YAYIMLANIR...';
   const ok=await pushState(true);
-  if(ok){ showPublishedLink(publishedGistId); copyDisplayLink(false); }
+  if(ok){ showPublishedLink(publishedGistId); copyDisplayLink(); }
   else toast('XƏTA baş verdi','err');
   btn.disabled=false; btn.textContent='⬆ YAYIMLA';
 }
@@ -914,15 +936,20 @@ function showPublishedLink(gistId){
   const dUrl=location.href.replace('panel.html','display.html')+'?gist='+gistId;
   el('pub-status').className='pub-status live';
   el('pub-status').textContent='🟢 CANLI — Gist: '+gistId.slice(0,10)+'...';
-  el('pub-link').innerHTML='<a href="'+dUrl+'" target="_blank">'+dUrl+'</a>';
-  el('btn-copy-link').style.display='';
+  el('pub-link').innerHTML='<a href="'+dUrl+'" target="_blank" style="font-size:11px">'+dUrl+'</a>';
+  el('copy-btns').style.display='flex';
 }
 
-function copyDisplayLink(silent){
+function copyDisplayLink(){
   if(!publishedGistId) return;
   const dUrl=location.href.replace('panel.html','display.html')+'?gist='+publishedGistId;
   if(navigator.clipboard) navigator.clipboard.writeText(dUrl).catch(()=>fb(dUrl)); else fb(dUrl);
-  toast('SKORBORD LİNKİ KOPİALANDI','gold');
+  toast('📺 SKORBORD LİNKİ KOPİALANDI','gold');
+}
+function copyAdminLink(){
+  const url=location.href;
+  if(navigator.clipboard) navigator.clipboard.writeText(url).catch(()=>fb(url)); else fb(url);
+  toast('⚙️ PANEL LİNKİ KOPİALANDI','');
 }
 function fb(t){ const ta=document.createElement('textarea'); ta.value=t; ta.style.cssText='position:fixed;opacity:0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
 
@@ -954,6 +981,110 @@ async function createEventGist(e){
 }
 
 function toast(msg,type){ const t=el('toast'); t.textContent=msg; t.className='show'+(type?' '+type:''); setTimeout(()=>t.className='',2600); }
+
+// ── UI LANGUAGE ──
+const UI_LANGS = {
+  tr:{
+    subtitle:'Yönetim Paneli · Live Scoreboard',
+    sec_github:'GitHub Ayarı', sec_teams:'Takımlar', sec_tournament:'Turnuva Bilgisi',
+    sec_clock:'Saat Kontrolü', sec_player:'Oyuncu Göster', sec_sub:'Değişiklik',
+    sec_goal:'Gol Yönetimi', sec_preview:'Canlı Önizleme',
+    home_team:'🏠 Ev Sahibi', away_team:'✈️ Deplasman', goal_lang:'Gol Yazı Dili',
+    btn_save:'Kaydet', btn_publish:'⬆ YAYIMLA', btn_display_link:'📺 Skorbord Linki',
+    btn_admin_link:'⚙️ Panel Linki', btn_start:'▶ Başlat', btn_reset_clock:'↺ Saati Sıfırla',
+    btn_publish_now:'📡 Şimdi Yayımla', btn_home_goal:'⚽ Ev Golü', btn_away_goal:'⚽ Dep Golü',
+    btn_reset:'↺ Sıfırla', btn_show_home:'Ev Göster', btn_show_away:'Dep Göster',
+    btn_sub_home:'Ev', btn_sub_away:'Dep',
+    lbl_abbr:'Kısaltma', lbl_team_name:'Takım Adı', lbl_logo:'Logo URL',
+    lbl_colors:'Renkler', lbl_primary:'Birincil', lbl_secondary:'İkincil',
+    lbl_cup_name:'Kupa / Lig Adı', lbl_cup_logo:'Kupa Logo URL',
+    lbl_sb_bg:'Skorbord Fonu', lbl_score_color:'Skor Rengi',
+    lbl_clock_color:'Saat Rengi', lbl_overlay:'Gölge Efekti',
+    lbl_number:'Numara', lbl_player_name:'Oyuncu Adı', lbl_info:'Bilgi',
+    lbl_out_num:'↓ Numara', lbl_out_name:'↓ Çıkan', lbl_in_num:'↑ Numara', lbl_in_name:'↑ Giren',
+    clock_stopped:'Durduruldu', clock_running:'Çalışıyor...',
+    pub_no_token:'Token girilmeden yayımlanamaz', pub_ready:'Hazır — YAYIMLA butonuna bas',
+    auto_sync:'Her değişiklik otomatik yayımlanır', syncing:'Senkronize ediliyor...', synced:'Senkronize edildi ✓',
+    toast_saved:'KAYDEDİLDİ','toast_published':'YAYIMLANDI! LİNK KOPİALANDI',
+    toast_display:'📺 Skorbord Linki Kopyalandı', toast_admin:'⚙️ Panel Linki Kopyalandı',
+  },
+  az:{
+    subtitle:'İdarəetmə Paneli · Live Scoreboard',
+    sec_github:'GitHub Ayarı', sec_teams:'Komandalar', sec_tournament:'Turnir Məlumatı',
+    sec_clock:'Vaxt İdarəetməsi', sec_player:'Oyunçu Göstər', sec_sub:'Əvəzetmə',
+    sec_goal:'Qol İdarəetməsi', sec_preview:'Canlı Önizləmə',
+    home_team:'🏠 Ev Sahibi', away_team:'✈️ Səfər', goal_lang:'Qol Yazısı Dili',
+    btn_save:'Saxla', btn_publish:'⬆ YAYIMLA', btn_display_link:'📺 Skorbord Linki',
+    btn_admin_link:'⚙️ Panel Linki', btn_start:'▶ Başlat', btn_reset_clock:'↺ Vaxtı Sıfırla',
+    btn_publish_now:'📡 İndi Yayımla', btn_home_goal:'⚽ Ev Qol', btn_away_goal:'⚽ Səfər Qol',
+    btn_reset:'↺ Sıfırla', btn_show_home:'Ev Göstər', btn_show_away:'Səfər Göstər',
+    btn_sub_home:'Ev', btn_sub_away:'Səfər',
+    lbl_abbr:'Qısaltma', lbl_team_name:'Komanda Adı', lbl_logo:'Loqo URL',
+    lbl_colors:'Rənglər', lbl_primary:'Əsas', lbl_secondary:'İkinci',
+    lbl_cup_name:'Kubok / Liqa Adı', lbl_cup_logo:'Kubok Loqo URL',
+    lbl_sb_bg:'Skorbord Fonu', lbl_score_color:'Skor Rəngi',
+    lbl_clock_color:'Vaxt Rəngi', lbl_overlay:'Kölgə Effekti',
+    lbl_number:'Nömrə', lbl_player_name:'Oyunçu Adı', lbl_info:'Məlumat',
+    lbl_out_num:'↓ Nömrə', lbl_out_name:'↓ Çıxan', lbl_in_num:'↑ Nömrə', lbl_in_name:'↑ Girən',
+    clock_stopped:'Dayandırılıb', clock_running:'Çalışır...',
+    pub_no_token:'Token daxil edilmədən yayımlanmaz', pub_ready:'Hazır — YAYIMLA düyməsinə basın',
+    auto_sync:'Hər dəyişiklik avtomatik yayımlanır', syncing:'Sinxronlaşır...', synced:'Sinxronlaşdı ✓',
+    toast_saved:'SAXLANDI', toast_published:'YAYIMLANDI! LİNK KOPİALANDI',
+    toast_display:'📺 Skorbord Linki Kopyalandı', toast_admin:'⚙️ Panel Linki Kopyalandı',
+  },
+  en:{
+    subtitle:'Control Panel · Live Scoreboard',
+    sec_github:'GitHub Settings', sec_teams:'Teams', sec_tournament:'Tournament Info',
+    sec_clock:'Clock Control', sec_player:'Show Player', sec_sub:'Substitution',
+    sec_goal:'Goal Management', sec_preview:'Live Preview',
+    home_team:'🏠 Home', away_team:'✈️ Away', goal_lang:'Goal Text Language',
+    btn_save:'Save', btn_publish:'⬆ PUBLISH', btn_display_link:'📺 Scoreboard Link',
+    btn_admin_link:'⚙️ Admin Link', btn_start:'▶ Start', btn_reset_clock:'↺ Reset Clock',
+    btn_publish_now:'📡 Publish Now', btn_home_goal:'⚽ Home Goal', btn_away_goal:'⚽ Away Goal',
+    btn_reset:'↺ Reset', btn_show_home:'Show Home', btn_show_away:'Show Away',
+    btn_sub_home:'Home', btn_sub_away:'Away',
+    lbl_abbr:'Abbreviation', lbl_team_name:'Team Name', lbl_logo:'Logo URL',
+    lbl_colors:'Colors', lbl_primary:'Primary', lbl_secondary:'Secondary',
+    lbl_cup_name:'Cup / League Name', lbl_cup_logo:'Cup Logo URL',
+    lbl_sb_bg:'Scoreboard BG', lbl_score_color:'Score Color',
+    lbl_clock_color:'Clock Color', lbl_overlay:'Shadow Effect',
+    lbl_number:'Number', lbl_player_name:'Player Name', lbl_info:'Info',
+    lbl_out_num:'↓ Number', lbl_out_name:'↓ Out', lbl_in_num:'↑ Number', lbl_in_name:'↑ In',
+    clock_stopped:'Stopped', clock_running:'Running...',
+    pub_no_token:'Cannot publish without token', pub_ready:'Ready — click PUBLISH',
+    auto_sync:'Every change auto-published', syncing:'Syncing...', synced:'Synced ✓',
+    toast_saved:'SAVED', toast_published:'PUBLISHED! LINK COPIED',
+    toast_display:'📺 Scoreboard Link Copied', toast_admin:'⚙️ Admin Link Copied',
+  }
+};
+let uiLang = localStorage.getItem('ui_lang') || 'tr';
+
+function setUiLang(lang){
+  uiLang = lang;
+  localStorage.setItem('ui_lang', lang);
+  ['tr','az','en'].forEach(l => el('ui-'+l).classList.toggle('active', l===lang));
+  applyUiLang();
+}
+
+function applyUiLang(){
+  const L = UI_LANGS[uiLang] || UI_LANGS.tr;
+  // Apply all data-i18n elements
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if(L[key]) el.textContent = L[key];
+  });
+  // Dynamic texts
+  el('pub-status').textContent = publishedGistId
+    ? el('pub-status').textContent  // keep live status
+    : (ghToken ? L.pub_ready : L.pub_no_token);
+  el('auto-txt').textContent = L.auto_sync;
+  el('clock-hint').textContent = clockRunning ? L.clock_running : L.clock_stopped;
+}
+
+// Init UI lang on load
+document.addEventListener('DOMContentLoaded', () => {
+  setUiLang(uiLang);
+});
 </script>
 </body>
 </html>
